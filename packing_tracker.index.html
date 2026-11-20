@@ -1,0 +1,1928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Packing List — Interactive Trip Tracker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; padding: 0; }
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, select { font-family: inherit; color: inherit; }
+    button { background: none; border: none; padding: 0; }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    @media (min-width: 640px) {
+      .container { padding: 28px 24px 48px; }
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    @media (min-width: 680px) {
+      .app-header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+    }
+    .brand-row { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
+    .brand-icon {
+      width: 40px; height: 40px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      border: 1px solid var(--border);
+      background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
+      color: var(--primary);
+    }
+    .title-wrap { min-width: 0; }
+    .title-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .trip-title {
+      margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.02em;
+      color: var(--foreground); border-radius: 6px; padding: 0 4px; margin-left: -4px; outline: none;
+    }
+    .trip-title:focus, .trip-subtitle:focus, .day-title:focus {
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    .trip-subtitle {
+      font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px;
+      border: 1px solid var(--border); background-color: var(--card); color: var(--muted-foreground);
+      outline: none;
+    }
+    .header-meta {
+      margin: 3px 0 0; font-size: 12px; color: var(--muted-foreground);
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 12px; border-radius: 9px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: opacity 140ms ease, background-color 140ms ease, border-color 140ms ease;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background-color: var(--primary); color: var(--primary-foreground);
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      background-color: var(--card); color: var(--foreground);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      background-color: color-mix(in srgb, var(--foreground) 5%, var(--card));
+    }
+
+    /* Main Tabs */
+    .nav-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .tab-group {
+      display: inline-flex; padding: 4px; border-radius: 12px;
+      background-color: var(--card); border: 1px solid var(--border); gap: 4px;
+      flex-wrap: wrap;
+    }
+    .main-tab {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      cursor: pointer; transition: background-color 140ms ease, color 140ms ease;
+      color: var(--muted-foreground);
+    }
+    .main-tab:hover { color: var(--foreground); }
+    .main-tab.active {
+      background-color: var(--primary); color: var(--primary-foreground);
+    }
+    .tab-badge {
+      padding: 1px 6px; border-radius: 6px; font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .quick-stats {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums;
+    }
+    .stat-item { display: inline-flex; align-items: center; gap: 6px; }
+    .stat-item strong { color: var(--foreground); font-weight: 600; }
+    .dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
+    .dot-sm { width: 6px; height: 6px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
+
+    /* Cards & Layout */
+    .stack { display: flex; flex-direction: column; gap: 16px; }
+    .card {
+      border-radius: 16px; border: 1px solid var(--border);
+      background-color: var(--card); overflow: hidden;
+    }
+    .card-padded { padding: 18px 20px; }
+    .grid-2 {
+      display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start;
+    }
+    @media (min-width: 960px) { .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+    .grid-3 {
+      display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start;
+    }
+    @media (min-width: 720px) { .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1080px) { .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+    .grid-4 {
+      display: grid; grid-template-columns: 1fr; gap: 12px;
+    }
+    @media (min-width: 640px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+    /* Readiness Section */
+    .readiness-top {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    @media (min-width: 640px) {
+      .readiness-top { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+    }
+    .readiness-label { font-size: 12px; color: var(--muted-foreground); font-weight: 500; }
+    .readiness-metric { display: flex; align-items: baseline; gap: 10px; margin-top: 2px; flex-wrap: wrap; }
+    .readiness-pct { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .readiness-detail { font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+    .readiness-detail strong { color: var(--foreground); font-weight: 600; }
+
+    .scope-switcher {
+      display: inline-flex; padding: 4px; border-radius: 12px;
+      border: 1px solid var(--border); background-color: var(--background); gap: 4px;
+      align-self: flex-start;
+    }
+    .scope-btn {
+      padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted-foreground); border: 1px solid transparent; transition: all 140ms ease;
+    }
+    .scope-btn:hover { color: var(--foreground); }
+    .scope-btn.active {
+      background-color: var(--card); color: var(--foreground); border-color: var(--border);
+    }
+
+    .progress-track {
+      width: 100%; height: 10px; border-radius: 999px; overflow: hidden; display: flex;
+      background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+    }
+    .progress-thin {
+      width: 100%; height: 4px;
+      background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
+    }
+    .progress-seg { height: 100%; transition: width 260ms ease; }
+
+    .filter-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; flex-wrap: wrap;
+    }
+    .chip-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--border); background-color: var(--card); color: var(--foreground);
+      cursor: pointer; transition: all 140ms ease; white-space: nowrap;
+    }
+    .chip:hover { background-color: color-mix(in srgb, var(--foreground) 5%, var(--card)); }
+    .chip.active {
+      background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary);
+    }
+    .chip-square { border-radius: 8px; }
+
+    .toggle-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 10px; border-radius: 8px; font-size: 12px;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+      cursor: pointer; transition: all 140ms ease;
+    }
+    .toggle-btn:hover { color: var(--foreground); }
+    .toggle-btn.on {
+      border-color: var(--primary); color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+    }
+
+    /* Search & Category Bar */
+    .toolbar-row {
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    @media (min-width: 768px) {
+      .toolbar-row { flex-direction: row; align-items: center; justify-content: space-between; }
+    }
+    .search-box { position: relative; width: 100%; max-width: 300px; flex-shrink: 0; }
+    .search-icon {
+      position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+      color: var(--muted-foreground); pointer-events: none;
+    }
+    .search-input {
+      width: 100%; padding: 7px 30px 7px 34px; border-radius: 12px; font-size: 12px;
+      background-color: var(--card); border: 1px solid var(--border);
+      color: var(--foreground); outline: none;
+    }
+    .search-input::placeholder { color: var(--placeholder); }
+    .search-input:focus { border-color: var(--primary); }
+    .search-clear {
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--muted-foreground); cursor: pointer; font-size: 16px; line-height: 1;
+    }
+    .cat-scroll {
+      display: flex; align-items: center; gap: 6px; overflow-x: auto; padding-bottom: 2px;
+    }
+
+    /* Category Card */
+    .cat-header {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .collapse-btn {
+      display: flex; align-items: center; gap: 8px; min-width: 0;
+      text-align: left; cursor: pointer;
+    }
+    .collapse-btn h2 {
+      margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .chevron { color: var(--muted-foreground); transition: transform 160ms ease; flex-shrink: 0; }
+    .chevron.collapsed { transform: rotate(-90deg); }
+    .list-tag {
+      font-size: 12px; padding: 1px 8px; border-radius: 6px; flex-shrink: 0;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+    }
+    .cat-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .pack-all-btn {
+      font-size: 12px; color: var(--muted-foreground); cursor: pointer; transition: color 140ms ease;
+    }
+    .pack-all-btn:hover { color: var(--primary); }
+    .cat-count { font-size: 12px; font-weight: 500; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
+
+    /* Item Rows */
+    .item-list { list-style: none; margin: 0; padding: 0; }
+    .item-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 8px 14px; border-bottom: 1px solid var(--card-border); transition: background-color 120ms ease;
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-row:hover { background-color: color-mix(in srgb, var(--foreground) 4%, transparent); }
+    .item-row.skipped { opacity: 0.56; }
+    .item-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .check-circle {
+      width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      cursor: pointer; transition: all 140ms ease;
+    }
+    .check-circle:active { transform: scale(0.9); }
+    .check-circle.checked {
+      background-color: var(--success); border-color: var(--success); color: var(--background);
+    }
+    .item-name {
+      font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      cursor: text; user-select: none; color: var(--foreground); font-weight: 500;
+    }
+    .item-name.packed { color: var(--muted-foreground); font-weight: 400; }
+    .item-name.skipped { color: var(--muted-foreground); text-decoration: line-through; font-weight: 400; }
+    .inline-edit {
+      width: 100%; font-size: 13px; background-color: var(--background);
+      color: var(--foreground); border: 1px solid var(--primary);
+      border-radius: 6px; padding: 2px 6px; outline: none;
+    }
+    .item-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    /* Status Pills */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 500;
+      border: 1px solid transparent; cursor: pointer;
+      transition: background-color 140ms ease, border-color 140ms ease, transform 120ms ease;
+      white-space: nowrap;
+    }
+    .status-pill:active { transform: scale(0.97); }
+    .st-yes {
+      background-color: color-mix(in srgb, var(--success) 15%, transparent);
+      color: var(--success);
+      border-color: color-mix(in srgb, var(--success) 32%, transparent);
+    }
+    .st-notyet {
+      background-color: color-mix(in srgb, var(--error) 14%, transparent);
+      color: var(--error);
+      border-color: color-mix(in srgb, var(--error) 30%, transparent);
+    }
+    .st-dayof {
+      background-color: color-mix(in srgb, var(--warning) 16%, transparent);
+      color: var(--warning);
+      border-color: color-mix(in srgb, var(--warning) 34%, transparent);
+    }
+    .st-maybe {
+      background-color: color-mix(in srgb, var(--chart-1) 15%, transparent);
+      color: var(--chart-1);
+      border-color: color-mix(in srgb, var(--chart-1) 32%, transparent);
+    }
+    .st-dontneed {
+      background-color: color-mix(in srgb, var(--muted-foreground) 12%, transparent);
+      color: var(--muted-foreground);
+      border-color: color-mix(in srgb, var(--border) 80%, transparent);
+    }
+    .st-unset {
+      background-color: transparent;
+      color: var(--muted-foreground);
+      border: 1px dashed var(--border);
+    }
+
+    .icon-del {
+      width: 24px; height: 24px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted-foreground); opacity: 0; cursor: pointer;
+      transition: opacity 120ms ease, color 120ms ease;
+    }
+    .item-row:hover .icon-del, .outfit-piece:hover .icon-del, .icon-del:focus { opacity: 1; }
+    .icon-del:hover { color: var(--error); }
+
+    /* Quick Add */
+    .quick-add-form {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; border-top: 1px solid var(--card-border);
+    }
+    .quick-add-input {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-size: 12px; color: var(--foreground); padding: 2px 0;
+    }
+    .quick-add-input::placeholder { color: var(--placeholder); }
+    .link-btn { font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; padding: 2px 4px; }
+    .link-btn:hover { text-decoration: underline; }
+
+    /* Outfits */
+    .slot-block { padding: 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--card-border); }
+    .slot-block:first-child { border-top: none; }
+    .slot-head { display: flex; align-items: center; justify-content: space-between; }
+    .slot-label {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em;
+      color: var(--muted-foreground);
+    }
+    .outfit-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .outfit-piece {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 6px 10px; border-radius: 10px;
+      border: 1px solid var(--card-border); background-color: var(--background);
+    }
+    .track-btn {
+      padding: 2px 8px; border-radius: 999px; font-size: 12px;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+      cursor: pointer; transition: all 140ms ease; white-space: nowrap;
+    }
+    .track-btn:hover { color: var(--primary); border-color: var(--primary); }
+    .outfit-add-form { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
+    .outfit-add-input {
+      flex: 1; background: transparent; border: none; border-bottom: 1px solid transparent;
+      font-size: 12px; color: var(--foreground); padding: 4px 0; outline: none;
+    }
+    .outfit-add-input:focus { border-bottom-color: var(--primary); }
+    .outfit-add-input::placeholder { color: var(--placeholder); }
+
+    /* Electronics Table */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th {
+      padding: 10px 16px; font-size: 12px; font-weight: 500;
+      color: var(--muted-foreground); border-bottom: 1px solid var(--border);
+    }
+    td { padding: 10px 16px; border-bottom: 1px solid var(--card-border); font-size: 13px; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background-color: color-mix(in srgb, var(--foreground) 4%, transparent); }
+    .select-input, .text-input {
+      padding: 6px 10px; border-radius: 10px; font-size: 12px;
+      background-color: var(--background); border: 1px solid var(--border);
+      color: var(--foreground); outline: none;
+    }
+    .select-input:focus, .text-input:focus { border-color: var(--primary); }
+    .elec-add-form {
+      padding: 12px 16px; border-top: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    @media (min-width: 640px) {
+      .elec-add-form { flex-direction: row; align-items: center; }
+    }
+
+    /* Popover, Modal, Toast */
+    .hidden { display: none !important; }
+    .popover-menu {
+      position: fixed; z-index: 50; width: 176px;
+      border-radius: 12px; border: 1px solid var(--border);
+      background-color: var(--card); padding: 6px;
+      box-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.24), 0 2px 8px -2px rgba(0, 0, 0, 0.12);
+      animation: fadeIn 120ms ease-out;
+    }
+    .pop-opt {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; padding: 6px 10px; border-radius: 8px; font-size: 12px;
+      text-align: left; cursor: pointer; color: var(--foreground);
+    }
+    .pop-opt:hover { background-color: color-mix(in srgb, var(--foreground) 6%, transparent); }
+
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 60;
+      display: flex; align-items: center; justify-content: center; padding: 16px;
+      background-color: rgba(0, 0, 0, 0.48); backdrop-filter: blur(2px);
+    }
+    .modal-box {
+      width: 100%; max-width: 440px; border-radius: 16px;
+      border: 1px solid var(--border); background-color: var(--card);
+      padding: 20px; display: flex; flex-direction: column; gap: 14px;
+      box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.28);
+      animation: fadeIn 140ms ease-out;
+    }
+    .modal-head { display: flex; align-items: center; justify-content: space-between; }
+    .modal-head h3 { margin: 0; font-size: 16px; font-weight: 600; }
+    .field-label { display: block; font-size: 12px; font-weight: 500; color: var(--muted-foreground); margin-bottom: 5px; }
+    .check-card {
+      display: flex; align-items: flex-start; gap: 10px; padding: 12px;
+      border-radius: 12px; border: 1px solid var(--border); background-color: var(--background);
+      cursor: pointer; font-size: 12px;
+    }
+    .export-card {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+      background-color: var(--background); cursor: pointer; text-align: left; width: 100%;
+      transition: border-color 140ms ease;
+    }
+    .export-card:hover { border-color: var(--primary); }
+
+    .toast {
+      position: fixed; bottom: 20px; right: 20px; z-index: 70;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px; border-radius: 12px;
+      border: 1px solid var(--border); background-color: var(--card);
+      font-size: 12px; color: var(--foreground);
+      box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.22);
+      animation: fadeIn 140ms ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .empty-state { padding: 40px 20px; text-align: center; }
+    .muted { color: var(--muted-foreground); }
+    .text-xs { font-size: 12px; }
+    .tabular { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <div id="app" class="container">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand-row">
+        <div class="brand-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="7" width="14" height="13" rx="2.5"></rect>
+            <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+            <path d="M9 12h6"></path>
+            <path d="M9 16h4"></path>
+          </svg>
+        </div>
+        <div class="title-wrap">
+          <div class="title-line">
+            <h1 id="tripTitle" class="trip-title" contenteditable="true" spellcheck="false" title="Click to rename trip"></h1>
+            <span id="tripSubtitle" class="trip-subtitle" contenteditable="true" spellcheck="false" title="Click to edit trip dates"></span>
+          </div>
+          <p class="header-meta">
+            <span>Imported from Google Sheets</span>
+            <span aria-hidden="true">·</span>
+            <span id="saveIndicator">Saved locally</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnStandaloneTheme" type="button" class="btn btn-secondary hidden" title="Toggle light/dark mode">
+          <span id="themeBtnLabel">Dark Mode</span>
+        </button>
+        <button id="btnAddItemGlobal" type="button" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Add Item
+        </button>
+        <button id="btnNewTrip" type="button" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          New Trip Reset
+        </button>
+        <button id="btnExport" type="button" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export
+        </button>
+      </div>
+    </header>
+
+    <!-- Primary Tab Navigation -->
+    <nav class="nav-bar">
+      <div class="tab-group" role="tablist">
+        <button data-tab="checklist" role="tab" class="main-tab">
+          <span>Packing Checklist</span>
+          <span id="tabBadgeChecklist" class="tab-badge"></span>
+        </button>
+        <button data-tab="outfits" role="tab" class="main-tab">
+          <span>Outfits</span>
+          <span id="tabBadgeOutfits" class="tab-badge"></span>
+        </button>
+        <button data-tab="electronics" role="tab" class="main-tab">
+          <span>Electronics &amp; Chargers</span>
+          <span id="tabBadgeElectronics" class="tab-badge"></span>
+        </button>
+      </div>
+
+      <div id="headerQuickStats" class="quick-stats"></div>
+    </nav>
+
+    <!-- Main Content Views -->
+    <main id="viewContainer"></main>
+  </div>
+
+  <!-- Floating Status Popover -->
+  <div id="statusPopover" class="popover-menu hidden"></div>
+
+  <!-- Modal Backdrop -->
+  <div id="modalBackdrop" class="modal-backdrop hidden">
+    <div id="modalContent" class="modal-box"></div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden">
+    <span id="toastMsg"></span>
+    <button id="toastUndo" type="button" class="link-btn hidden">Undo</button>
+  </div>
+
+  <script>
+    // Standalone browser theme support: ONLY applies when opened outside a host that injects CSS variables
+    (function initStandaloneTheme() {
+      const hasHostTheme = !!getComputedStyle(document.documentElement).getPropertyValue('--background').trim();
+      if (hasHostTheme) return;
+
+      const THEME_KEY = 'packing_tracker_standalone_theme';
+      const PALETTES = {
+        light: {
+          '--background': '#f7f6f2',
+          '--content': '#ffffff',
+          '--card': '#ffffff',
+          '--sidebar': '#f1efe9',
+          '--border': '#e4e1d8',
+          '--card-border': '#eeece5',
+          '--foreground': '#1c1b18',
+          '--muted-foreground': '#6b685f',
+          '--placeholder': '#9c988e',
+          '--primary': '#2563eb',
+          '--primary-foreground': '#ffffff',
+          '--success': '#15803d',
+          '--warning': '#b45309',
+          '--error': '#dc2626',
+          '--chart-1': '#0284c7',
+          '--chart-2': '#0d9488'
+        },
+        dark: {
+          '--background': '#131416',
+          '--content': '#1a1c20',
+          '--card': '#1c1e22',
+          '--sidebar': '#16181c',
+          '--border': '#2c2f36',
+          '--card-border': '#25282e',
+          '--foreground': '#f1f2f4',
+          '--muted-foreground': '#9aa0aa',
+          '--placeholder': '#6d737e',
+          '--primary': '#3b82f6',
+          '--primary-foreground': '#ffffff',
+          '--success': '#22c55e',
+          '--warning': '#f59e0b',
+          '--error': '#f87171',
+          '--chart-1': '#38bdf8',
+          '--chart-2': '#2dd4bf'
+        }
+      };
+
+      const saved = localStorage.getItem(THEME_KEY);
+      let mode = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+      function apply(m) {
+        mode = m;
+        const p = PALETTES[m];
+        Object.keys(p).forEach(k => document.documentElement.style.setProperty(k, p[k]));
+        const btn = document.getElementById('btnStandaloneTheme');
+        const lbl = document.getElementById('themeBtnLabel');
+        if (btn && lbl) {
+          btn.classList.remove('hidden');
+          lbl.textContent = m === 'dark' ? 'Light Mode' : 'Dark Mode';
+        }
+      }
+
+      apply(mode);
+      const btn = document.getElementById('btnStandaloneTheme');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const next = mode === 'dark' ? 'light' : 'dark';
+          localStorage.setItem(THEME_KEY, next);
+          apply(next);
+        });
+      }
+    })();
+
+    const STORAGE_KEY = 'packing_tracker_app_v1';
+
+    const STATUSES = [
+      { value: 'Yes',            label: 'Packed',         short: 'Yes',        cls: 'st-yes',      dot: 'var(--success)',          order: 4 },
+      { value: 'Not Yet',        label: 'Not Yet',        short: 'Not Yet',    cls: 'st-notyet',   dot: 'var(--error)',            order: 0 },
+      { value: 'Packing Day Of', label: 'Packing Day Of', short: 'Day Of',     cls: 'st-dayof',    dot: 'var(--warning)',          order: 1 },
+      { value: 'Maybe',          label: 'Maybe',          short: 'Maybe',      cls: 'st-maybe',    dot: 'var(--chart-1)',          order: 2 },
+      { value: "Don't Need",     label: "Don't Need",     short: "Don't Need", cls: 'st-dontneed', dot: 'var(--muted-foreground)', order: 5 },
+      { value: '',               label: 'Unset',          short: 'Set status', cls: 'st-unset',    dot: 'var(--border)',           order: 3 }
+    ];
+
+    const CHARGER_OPTIONS = ['USB-C', 'Android USB', 'USB', 'Lightning', 'Wireless', 'Proprietary', '???'];
+
+    const INITIAL_DATA = {
+      tripTitle: 'Packing List',
+      tripSubtitle: 'Apr 16 – Apr 20',
+      baseCategories: ['Toiletries', 'Hair Toiletries', 'Medicine', 'Clothing', 'Accessories', 'Electronic'],
+      tripCategories: ['Toiletries', 'Clothing', 'Shoes', 'Accessories', 'Other'],
+      items: [
+        // Base List — Toiletries
+        { id: 'base-1', list: 'base', category: 'Toiletries', name: 'Face Lotion', status: 'Yes' },
+        { id: 'base-2', list: 'base', category: 'Toiletries', name: 'Face Wash', status: 'Yes' },
+        { id: 'base-3', list: 'base', category: 'Toiletries', name: 'Pimple Patches', status: 'Yes' },
+        { id: 'base-4', list: 'base', category: 'Toiletries', name: 'Toner', status: 'Yes' },
+        { id: 'base-5', list: 'base', category: 'Toiletries', name: 'Make up Remover', status: "Don't Need" },
+        { id: 'base-6', list: 'base', category: 'Toiletries', name: 'Make up Remover Wipes', status: 'Yes' },
+        { id: 'base-7', list: 'base', category: 'Toiletries', name: 'Makeup Towel', status: 'Yes' },
+        { id: 'base-8', list: 'base', category: 'Toiletries', name: 'Cotton Balls', status: 'Yes' },
+        { id: 'base-9', list: 'base', category: 'Toiletries', name: 'Q-tips', status: 'Yes' },
+        { id: 'base-10', list: 'base', category: 'Toiletries', name: 'Deoderant', status: 'Yes' },
+        { id: 'base-11', list: 'base', category: 'Toiletries', name: 'Body Lotion', status: 'Yes' },
+        { id: 'base-12', list: 'base', category: 'Toiletries', name: 'Perfume', status: 'Yes' },
+        { id: 'base-13', list: 'base', category: 'Toiletries', name: 'Body Mist', status: 'Yes' },
+        { id: 'base-14', list: 'base', category: 'Toiletries', name: 'Ear Plugs', status: 'Yes' },
+        { id: 'base-15', list: 'base', category: 'Toiletries', name: 'Sleep Mask', status: 'Yes' },
+        { id: 'base-16', list: 'base', category: 'Toiletries', name: 'Makeup Brushes', status: 'Yes' },
+        { id: 'base-17', list: 'base', category: 'Toiletries', name: 'Make Up', status: 'Yes' },
+        { id: 'base-18', list: 'base', category: 'Toiletries', name: 'Rubbing Alcohol', status: "Don't Need" },
+        { id: 'base-19', list: 'base', category: 'Toiletries', name: 'Tooth Brush', status: 'Yes' },
+        { id: 'base-20', list: 'base', category: 'Toiletries', name: 'Tooth Paste', status: 'Yes' },
+        { id: 'base-21', list: 'base', category: 'Toiletries', name: 'Floss', status: 'Yes' },
+        { id: 'base-22', list: 'base', category: 'Toiletries', name: 'Contacts', status: 'Yes' },
+        { id: 'base-23', list: 'base', category: 'Toiletries', name: "Paula's Choice Blue", status: 'Yes' },
+        { id: 'base-24', list: 'base', category: 'Toiletries', name: "Paula's Choice Grey", status: 'Yes' },
+        { id: 'base-25', list: 'base', category: 'Toiletries', name: 'Face Washing scrunchies', status: 'Yes' },
+        { id: 'base-26', list: 'base', category: 'Toiletries', name: 'Setting Spray', status: 'Yes' },
+        { id: 'base-27', list: 'base', category: 'Toiletries', name: 'Niacinamide', status: "Don't Need" },
+        { id: 'base-28', list: 'base', category: 'Toiletries', name: 'FOUNDATION', status: 'Yes' },
+        { id: 'base-29', list: 'base', category: 'Toiletries', name: 'Wrinkle Spray', status: 'Yes' },
+        { id: 'base-30', list: 'base', category: 'Toiletries', name: 'Scented Lotion', status: "Don't Need" },
+        { id: 'base-31', list: 'base', category: 'Toiletries', name: 'Body Wash', status: 'Yes' },
+        { id: 'base-32', list: 'base', category: 'Toiletries', name: 'Shaving Cream', status: "Don't Need" },
+        { id: 'base-33', list: 'base', category: 'Toiletries', name: 'Razor', status: "Don't Need" },
+        { id: 'base-34', list: 'base', category: 'Toiletries', name: "Kiehl's Acne Treatment", status: 'Yes' },
+
+        // Base List — Hair Toiletries
+        { id: 'base-35', list: 'base', category: 'Hair Toiletries', name: 'Head Scarf', status: 'Yes' },
+        { id: 'base-36', list: 'base', category: 'Hair Toiletries', name: 'Edge Control', status: "Don't Need" },
+        { id: 'base-37', list: 'base', category: 'Hair Toiletries', name: 'Sulfur 8', status: "Don't Need" },
+        { id: 'base-38', list: 'base', category: 'Hair Toiletries', name: 'Hair Gel', status: "Don't Need" },
+        { id: 'base-39', list: 'base', category: 'Hair Toiletries', name: 'Shampoo', status: "Don't Need" },
+        { id: 'base-40', list: 'base', category: 'Hair Toiletries', name: 'Conditioner', status: "Don't Need" },
+        { id: 'base-41', list: 'base', category: 'Hair Toiletries', name: 'Bonnet', status: 'Yes' },
+        { id: 'base-42', list: 'base', category: 'Hair Toiletries', name: 'Edge Brush', status: "Don't Need" },
+        { id: 'base-43', list: 'base', category: 'Hair Toiletries', name: 'Cecred Drops', status: 'Yes' },
+        { id: 'base-44', list: 'base', category: 'Hair Toiletries', name: 'Dermazen', status: 'Maybe' },
+        { id: 'base-45', list: 'base', category: 'Hair Toiletries', name: 'Edge Band', status: "Don't Need" },
+
+        // Base List — Medicine
+        { id: 'base-46', list: 'base', category: 'Medicine', name: 'Allergy Nasal Spray', status: "Don't Need" },
+        { id: 'base-47', list: 'base', category: 'Medicine', name: 'Tylenol', status: 'Yes' },
+        { id: 'base-48', list: 'base', category: 'Medicine', name: 'Ibuprofen', status: 'Yes' },
+        { id: 'base-49', list: 'base', category: 'Medicine', name: 'Excedrin', status: 'Yes' },
+        { id: 'base-50', list: 'base', category: 'Medicine', name: 'Melatonin', status: 'Not Yet' },
+        { id: 'base-51', list: 'base', category: 'Medicine', name: 'Afrin', status: 'Yes' },
+        { id: 'base-52', list: 'base', category: 'Medicine', name: 'Magnesium Oxide', status: "Don't Need" },
+        { id: 'base-53', list: 'base', category: 'Medicine', name: 'Atrantil', status: 'Yes' },
+        { id: 'base-54', list: 'base', category: 'Medicine', name: 'Gummies', status: "Don't Need" },
+
+        // Base List — Clothing
+        { id: 'base-55', list: 'base', category: 'Clothing', name: 'Pajamas', status: 'Yes' },
+        { id: 'base-56', list: 'base', category: 'Clothing', name: 'Regular Underwear', status: 'Yes' },
+        { id: 'base-57', list: 'base', category: 'Clothing', name: 'Thongs', status: 'Yes' },
+        { id: 'base-58', list: 'base', category: 'Clothing', name: 'Regular Bras', status: 'Yes' },
+        { id: 'base-59', list: 'base', category: 'Clothing', name: 'Sports Bras', status: 'Yes' },
+        { id: 'base-60', list: 'base', category: 'Clothing', name: 'Low Socks', status: 'Yes' },
+        { id: 'base-61', list: 'base', category: 'Clothing', name: 'T-shirts', status: 'Yes' },
+        { id: 'base-62', list: 'base', category: 'Clothing', name: 'Sweatpants', status: 'Packing Day Of' },
+        { id: 'base-63', list: 'base', category: 'Clothing', name: 'Sweatshirt', status: 'Packing Day Of' },
+        { id: 'base-64', list: 'base', category: 'Clothing', name: 'Long sleeve shirt', status: "Don't Need" },
+        { id: 'base-65', list: 'base', category: 'Clothing', name: 'Crew Socks', status: 'Yes' },
+
+        // Base List — Accessories
+        { id: 'base-66', list: 'base', category: 'Accessories', name: 'Jewelry', status: 'Not Yet' },
+        { id: 'base-67', list: 'base', category: 'Accessories', name: 'Gum', status: 'Yes' },
+        { id: 'base-68', list: 'base', category: 'Accessories', name: 'Plastic Bags', status: 'Yes' },
+        { id: 'base-69', list: 'base', category: 'Accessories', name: 'Large Pony Tail Holders', status: "Don't Need" },
+        { id: 'base-70', list: 'base', category: 'Accessories', name: 'Regular Pony Tail Holders', status: 'Yes' },
+        { id: 'base-71', list: 'base', category: 'Accessories', name: 'Water Bottle', status: 'Packing Day Of' },
+        { id: 'base-72', list: 'base', category: 'Accessories', name: 'Blue Light Glasses', status: "Don't Need" },
+        { id: 'base-73', list: 'base', category: 'Accessories', name: 'Regular Glasses', status: 'Yes' },
+        { id: 'base-74', list: 'base', category: 'Accessories', name: 'Totebag', status: 'Maybe' },
+        { id: 'base-75', list: 'base', category: 'Accessories', name: 'Mini rubber bands', status: 'Yes' },
+        { id: 'base-76', list: 'base', category: 'Accessories', name: 'Badge', status: "Don't Need" },
+        { id: 'base-77', list: 'base', category: 'Accessories', name: 'Headbands', status: '' },
+        { id: 'base-78', list: 'base', category: 'Accessories', name: 'Baseball Cap', status: '' },
+
+        // Base List — Electronic
+        { id: 'base-79', list: 'base', category: 'Electronic', name: 'Phone Charger', status: 'Yes' },
+        { id: 'base-80', list: 'base', category: 'Electronic', name: 'Watch Charger', status: 'Yes' },
+        { id: 'base-81', list: 'base', category: 'Electronic', name: 'Gold Watch Band', status: 'Yes' },
+        { id: 'base-82', list: 'base', category: 'Electronic', name: 'Portable Charger', status: 'Yes' },
+        { id: 'base-83', list: 'base', category: 'Electronic', name: 'Android Charger', status: 'Yes' },
+        { id: 'base-84', list: 'base', category: 'Electronic', name: 'Whoop Charger', status: 'Yes' },
+        { id: 'base-85', list: 'base', category: 'Electronic', name: 'Makeup Mirror', status: 'Yes' },
+        { id: 'base-86', list: 'base', category: 'Electronic', name: 'Charging Block', status: 'Yes' },
+        { id: 'base-87', list: 'base', category: 'Electronic', name: 'Laptop', status: 'Packing Day Of' },
+        { id: 'base-88', list: 'base', category: 'Electronic', name: 'Amazon Light', status: 'Yes' },
+        { id: 'base-89', list: 'base', category: 'Electronic', name: 'Digital Camera', status: "Don't Need" },
+        { id: 'base-90', list: 'base', category: 'Electronic', name: 'Mini Fan', status: 'Yes' },
+        { id: 'base-91', list: 'base', category: 'Electronic', name: 'iPad', status: 'Yes' },
+        { id: 'base-92', list: 'base', category: 'Electronic', name: 'Long USB C Charger (for mirror)', status: 'Yes' },
+        { id: 'base-93', list: 'base', category: 'Electronic', name: 'Airpods', status: 'Yes' },
+        { id: 'base-94', list: 'base', category: 'Electronic', name: 'USB-C Converters', status: 'Yes' },
+        { id: 'base-95', list: 'base', category: 'Electronic', name: 'Laptop charger', status: 'Yes' },
+        { id: 'base-96', list: 'base', category: 'Electronic', name: 'White Noise Machine', status: 'Yes' },
+        { id: 'base-97', list: 'base', category: 'Electronic', name: 'Door Stop Alarm', status: "Don't Need" },
+        { id: 'base-98', list: 'base', category: 'Electronic', name: 'Electric Shaver', status: "Don't Need" },
+        { id: 'base-99', list: 'base', category: 'Electronic', name: 'Laptop Privacy Screen', status: "Don't Need" },
+        { id: 'base-100', list: 'base', category: 'Electronic', name: 'Monitor', status: "Don't Need" },
+        { id: 'base-101', list: 'base', category: 'Electronic', name: 'Monitor Cord', status: "Don't Need" },
+        { id: 'base-102', list: 'base', category: 'Electronic', name: 'Pixel', status: "Don't Need" },
+
+        // Trip Specific — Toiletries
+        { id: 'trip-1', list: 'trip', category: 'Toiletries', name: 'Energy Packets', status: 'Yes' },
+        { id: 'trip-2', list: 'trip', category: 'Toiletries', name: 'Body Oil', status: 'Yes' },
+        { id: 'trip-3', list: 'trip', category: 'Toiletries', name: 'Body Glitter', status: 'Yes' },
+        { id: 'trip-4', list: 'trip', category: 'Toiletries', name: 'Berberine', status: "Don't Need" },
+        { id: 'trip-5', list: 'trip', category: 'Toiletries', name: 'LMNT', status: 'Yes' },
+        { id: 'trip-6', list: 'trip', category: 'Toiletries', name: 'Digestive Enzymes', status: 'Yes' },
+        { id: 'trip-7', list: 'trip', category: 'Toiletries', name: 'Atrantil', status: 'Yes' },
+        { id: 'trip-8', list: 'trip', category: 'Toiletries', name: 'Gluten & Dairy Digestive', status: "Don't Need" },
+        { id: 'trip-9', list: 'trip', category: 'Toiletries', name: 'Body wipes', status: 'Maybe' },
+        { id: 'trip-10', list: 'trip', category: 'Toiletries', name: 'Mini Spray Deoderant', status: 'Yes' },
+        { id: 'trip-11', list: 'trip', category: 'Toiletries', name: 'Portable Toiletry Bag', status: 'Yes' },
+        { id: 'trip-12', list: 'trip', category: 'Toiletries', name: 'Spray bottle', status: "Don't Need" },
+        { id: 'trip-13', list: 'trip', category: 'Toiletries', name: 'Mousse', status: "Don't Need" },
+        { id: 'trip-14', list: 'trip', category: 'Toiletries', name: 'Leave in conditioner', status: "Don't Need" },
+        { id: 'trip-15', list: 'trip', category: 'Toiletries', name: 'Poopuri', status: 'Yes' },
+        { id: 'trip-16', list: 'trip', category: 'Toiletries', name: 'brush', status: 'Yes' },
+        { id: 'trip-17', list: 'trip', category: 'Toiletries', name: 'bobby pins', status: 'Yes' },
+        { id: 'trip-18', list: 'trip', category: 'Toiletries', name: 'rubber bands', status: 'Yes' },
+        { id: 'trip-19', list: 'trip', category: 'Toiletries', name: 'Hard brush', status: 'Yes' },
+        { id: 'trip-20', list: 'trip', category: 'Toiletries', name: 'Hard wrap things for slick back', status: 'Yes' },
+        { id: 'trip-21', list: 'trip', category: 'Toiletries', name: 'Scarf for slick back', status: 'Yes' },
+        { id: 'trip-22', list: 'trip', category: 'Toiletries', name: 'Got 2 b spray', status: 'Yes' },
+        { id: 'trip-23', list: 'trip', category: 'Toiletries', name: 'Slicking Gel', status: 'Yes' },
+        { id: 'trip-24', list: 'trip', category: 'Toiletries', name: 'Hot Comb', status: 'Maybe' },
+        { id: 'trip-25', list: 'trip', category: 'Toiletries', name: 'Flat Iron', status: 'Maybe' },
+        { id: 'trip-26', list: 'trip', category: 'Toiletries', name: 'Heat Protectant', status: 'Maybe' },
+        { id: 'trip-27', list: 'trip', category: 'Toiletries', name: 'Backup Wig', status: 'Maybe' },
+
+        // Trip Specific — Clothing
+        { id: 'trip-28', list: 'trip', category: 'Clothing', name: 'Brunch Dress', status: 'Not Yet' },
+        { id: 'trip-29', list: 'trip', category: 'Clothing', name: 'Church Dress', status: 'Yes' },
+        { id: 'trip-30', list: 'trip', category: 'Clothing', name: 'Work Outfit', status: 'Not Yet' },
+        { id: 'trip-31', list: 'trip', category: 'Clothing', name: 'Night outfit 1', status: 'Not Yet' },
+        { id: 'trip-32', list: 'trip', category: 'Clothing', name: 'Night outfit 2', status: 'Not Yet' },
+        { id: 'trip-33', list: 'trip', category: 'Clothing', name: 'Athletic Dress', status: 'Yes' },
+        { id: 'trip-34', list: 'trip', category: 'Clothing', name: 'Office Jacket', status: 'Not Yet' },
+        { id: 'trip-35', list: 'trip', category: 'Clothing', name: 'Brunch/Church Jacket', status: 'Not Yet' },
+
+        // Trip Specific — Shoes
+        { id: 'trip-36', list: 'trip', category: 'Shoes', name: 'Brunch Heels', status: 'Not Yet' },
+        { id: 'trip-37', list: 'trip', category: 'Shoes', name: 'Platform sandals', status: 'Yes' },
+        { id: 'trip-38', list: 'trip', category: 'Shoes', name: 'Dunks', status: 'Yes' },
+        { id: 'trip-39', list: 'trip', category: 'Shoes', name: 'Night heels/boots', status: 'Not Yet' },
+        { id: 'trip-40', list: 'trip', category: 'Shoes', name: 'Slides', status: 'Not Yet' },
+
+        // Trip Specific — Accessories
+        { id: 'trip-41', list: 'trip', category: 'Accessories', name: 'Thick black belt', status: 'Yes' },
+        { id: 'trip-42', list: 'trip', category: 'Accessories', name: 'Fashion Scarf', status: 'Not Yet' },
+        { id: 'trip-43', list: 'trip', category: 'Accessories', name: 'Brown purse', status: 'Yes' },
+        { id: 'trip-44', list: 'trip', category: 'Accessories', name: 'Black Purse', status: 'Yes' },
+        { id: 'trip-45', list: 'trip', category: 'Accessories', name: 'Brown sunglasses', status: 'Yes' },
+        { id: 'trip-46', list: 'trip', category: 'Accessories', name: 'black sunglesses', status: 'Yes' },
+
+        // Trip Specific — Other
+        { id: 'trip-47', list: 'trip', category: 'Other', name: 'Airport Snacks', status: 'Not Yet' },
+        { id: 'trip-48', list: 'trip', category: 'Other', name: 'Badge', status: 'Yes' },
+        { id: 'trip-49', list: 'trip', category: 'Other', name: 'Phone Privacy Screen', status: 'Maybe' },
+        { id: 'trip-50', list: 'trip', category: 'Other', name: 'Heating pad', status: 'Yes' }
+      ],
+      outfits: [
+        { id: 'day-1', label: 'Thursday, April 16th', daytime: ['Alo Sweat Suit', 'Crop top'], nighttime: ['Pajams'] },
+        { id: 'day-2', label: 'Friday, April 17th', daytime: ['Jeans', 'Body Suit', 'Dunks', 'Light Jacket'], nighttime: [] },
+        { id: 'day-3', label: 'Saturday, April 18th', daytime: ['Yellow Dress', 'Heels', 'Button up as Jacket'], nighttime: [] },
+        { id: 'day-4', label: 'Sunday, April 19th', daytime: ['Black Dress', 'Thick Black Belt', 'Platform Sandals', 'Cardigan'], nighttime: ['Casual Party Outfit'] },
+        { id: 'day-5', label: 'Monday, April 20th', daytime: ['Alo Sweat Suit', 'Biker Shorts'], nighttime: [] }
+      ],
+      electronics: [
+        { id: 'elec-1', device: 'iPad', charger: 'USB-C' },
+        { id: 'elec-2', device: 'Mini Fan', charger: 'USB-C' },
+        { id: 'elec-3', device: 'Selfie Light', charger: '???' },
+        { id: 'elec-4', device: 'Watch Charger', charger: 'USB' },
+        { id: 'elec-5', device: 'Camera', charger: 'Android USB' },
+        { id: 'elec-6', device: 'Makeup Mirror', charger: 'Android USB' },
+        { id: 'elec-7', device: 'Mini Makeup Mirror', charger: '???' },
+        { id: 'elec-8', device: 'Portable Charger', charger: 'Android USB' }
+      ]
+    };
+
+    let data = loadData();
+    let ui = {
+      activeTab: 'checklist',
+      listScope: 'all',
+      statusFilter: 'all',
+      categoryFilter: 'all',
+      search: '',
+      hideDontNeed: false,
+      sortByStatus: true,
+      collapsedGroups: {},
+      openPopoverItemId: null,
+      toastTimer: null
+    };
+
+    function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.items)) return parsed;
+        }
+      } catch (e) {}
+      return clone(INITIAL_DATA);
+    }
+
+    function saveData(withIndicator = true) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+      if (withIndicator) {
+        const el = document.getElementById('saveIndicator');
+        if (el) {
+          el.textContent = 'Saved just now';
+          clearTimeout(saveData._t);
+          saveData._t = setTimeout(() => { el.textContent = 'Saved locally'; }, 1800);
+        }
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function getStatusMeta(val) {
+      return STATUSES.find(s => s.value === val) || STATUSES[STATUSES.length - 1];
+    }
+
+    function showToast(message, undoFn = null) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMsg');
+      const undoBtn = document.getElementById('toastUndo');
+      msgEl.textContent = message;
+      if (undoFn) {
+        undoBtn.classList.remove('hidden');
+        undoBtn.onclick = () => { undoFn(); toast.classList.add('hidden'); };
+      } else {
+        undoBtn.classList.add('hidden');
+        undoBtn.onclick = null;
+      }
+      toast.classList.remove('hidden');
+      clearTimeout(ui.toastTimer);
+      ui.toastTimer = setTimeout(() => toast.classList.add('hidden'), 4500);
+    }
+
+    function normalizeText(s) {
+      return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function findMatchingPackingItem(pieceName) {
+      const norm = normalizeText(pieceName);
+      if (!norm) return null;
+      const aliases = { 'pajams': 'pajamas', 'heels': 'brunch heels', 'camera': 'digital camera', 'selfie light': 'amazon light' };
+      const target = aliases[norm] || norm;
+      let exact = data.items.find(i => normalizeText(i.name) === target);
+      if (exact) return exact;
+      return data.items.find(i => {
+        const n = normalizeText(i.name);
+        return n === norm || (norm.length >= 4 && (n.includes(target) || target.includes(n)));
+      }) || null;
+    }
+
+    function findMatchingChargersForType(chargerType) {
+      const norm = normalizeText(chargerType);
+      const electronicsItems = data.items.filter(i => i.list === 'base' && i.category === 'Electronic');
+      if (norm === 'usb c' || norm === 'usbc') return electronicsItems.filter(i => /usb[\s-]*c/i.test(i.name));
+      if (norm === 'android usb') return electronicsItems.filter(i => /android/i.test(i.name));
+      if (norm === 'usb') return electronicsItems.filter(i => /watch charger|charging block|phone charger/i.test(i.name));
+      if (norm === 'lightning') return electronicsItems.filter(i => /phone charger|lightning/i.test(i.name));
+      return [];
+    }
+
+    function getScopedItems(scope = ui.listScope) {
+      if (scope === 'base') return data.items.filter(i => i.list === 'base');
+      if (scope === 'trip') return data.items.filter(i => i.list === 'trip');
+      return data.items;
+    }
+
+    function computeStats(items) {
+      const counts = { total: items.length, yes: 0, notYet: 0, dayOf: 0, maybe: 0, dontNeed: 0, unset: 0 };
+      for (const item of items) {
+        if (item.status === 'Yes') counts.yes++;
+        else if (item.status === 'Not Yet') counts.notYet++;
+        else if (item.status === 'Packing Day Of') counts.dayOf++;
+        else if (item.status === 'Maybe') counts.maybe++;
+        else if (item.status === "Don't Need") counts.dontNeed++;
+        else counts.unset++;
+      }
+      counts.required = counts.yes + counts.notYet + counts.dayOf + counts.unset;
+      counts.remaining = counts.notYet + counts.dayOf + counts.unset;
+      counts.pct = counts.required > 0 ? Math.round((counts.yes / counts.required) * 100) : 100;
+      return counts;
+    }
+
+    function renderChrome() {
+      const titleEl = document.getElementById('tripTitle');
+      if (document.activeElement !== titleEl) titleEl.textContent = data.tripTitle;
+      const subEl = document.getElementById('tripSubtitle');
+      if (document.activeElement !== subEl) subEl.textContent = data.tripSubtitle;
+
+      const allStats = computeStats(data.items);
+      const unknownChargers = data.electronics.filter(e => e.charger === '???' || !e.charger.trim()).length;
+
+      document.querySelectorAll('.main-tab').forEach(btn => {
+        const active = btn.dataset.tab === ui.activeTab;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+
+      const bChecklist = document.getElementById('tabBadgeChecklist');
+      bChecklist.textContent = allStats.remaining > 0 ? `${allStats.remaining} left` : 'Done';
+      bChecklist.style.backgroundColor = ui.activeTab === 'checklist'
+        ? 'color-mix(in srgb, var(--primary-foreground) 18%, transparent)'
+        : 'color-mix(in srgb, var(--foreground) 8%, transparent)';
+
+      const bOutfits = document.getElementById('tabBadgeOutfits');
+      bOutfits.textContent = `${data.outfits.length}d`;
+      bOutfits.style.backgroundColor = ui.activeTab === 'outfits'
+        ? 'color-mix(in srgb, var(--primary-foreground) 18%, transparent)'
+        : 'color-mix(in srgb, var(--foreground) 8%, transparent)';
+
+      const bElec = document.getElementById('tabBadgeElectronics');
+      bElec.textContent = unknownChargers > 0 ? `${unknownChargers} ???` : `${data.electronics.length}`;
+      bElec.style.backgroundColor = ui.activeTab === 'electronics'
+        ? 'color-mix(in srgb, var(--primary-foreground) 18%, transparent)'
+        : (unknownChargers > 0 ? 'color-mix(in srgb, var(--warning) 20%, transparent)' : 'color-mix(in srgb, var(--foreground) 8%, transparent)');
+      bElec.style.color = (ui.activeTab !== 'electronics' && unknownChargers > 0) ? 'var(--warning)' : '';
+
+      document.getElementById('headerQuickStats').innerHTML = `
+        <span class="stat-item"><span class="dot" style="background: var(--success)"></span><strong>${allStats.yes}</strong> packed</span>
+        <span class="stat-item"><span class="dot" style="background: var(--error)"></span><strong>${allStats.notYet + allStats.unset}</strong> to pack</span>
+        <span class="stat-item"><span class="dot" style="background: var(--warning)"></span><strong>${allStats.dayOf}</strong> day-of</span>
+      `;
+    }
+
+    function render() {
+      closePopover();
+      renderChrome();
+      const container = document.getElementById('viewContainer');
+      if (ui.activeTab === 'checklist') renderChecklistView(container);
+      else if (ui.activeTab === 'outfits') renderOutfitsView(container);
+      else renderElectronicsView(container);
+    }
+
+    // VIEW 1: PACKING CHECKLIST
+    function renderChecklistView(container) {
+      const scoped = getScopedItems();
+      const stats = computeStats(scoped);
+      const yesPct = stats.required ? (stats.yes / stats.required) * 100 : 100;
+      const dayOfPct = stats.required ? (stats.dayOf / stats.required) * 100 : 0;
+
+      const availableCategories = [];
+      if (ui.listScope === 'all' || ui.listScope === 'base') {
+        data.baseCategories.forEach(c => { if (!availableCategories.includes(c)) availableCategories.push(c); });
+      }
+      if (ui.listScope === 'all' || ui.listScope === 'trip') {
+        data.tripCategories.forEach(c => { if (!availableCategories.includes(c)) availableCategories.push(c); });
+      }
+      scoped.forEach(i => { if (!availableCategories.includes(i.category)) availableCategories.push(i.category); });
+      if (ui.categoryFilter !== 'all' && !availableCategories.includes(ui.categoryFilter)) ui.categoryFilter = 'all';
+
+      const q = ui.search.trim().toLowerCase();
+      const filtered = scoped.filter(item => {
+        if (ui.hideDontNeed && item.status === "Don't Need" && ui.statusFilter !== "Don't Need") return false;
+        if (ui.categoryFilter !== 'all' && item.category !== ui.categoryFilter) return false;
+        if (ui.statusFilter === 'topack') {
+          if (item.status !== 'Not Yet' && item.status !== '') return false;
+        } else if (ui.statusFilter !== 'all') {
+          if (item.status !== ui.statusFilter) return false;
+        }
+        if (q && !item.name.toLowerCase().includes(q) && !item.category.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const groupMap = new Map();
+      const orderedKeys = [];
+      const seedGroup = (list, category) => {
+        const key = `${list}::${category}`;
+        if (!groupMap.has(key)) {
+          groupMap.set(key, { key, list, category, items: [] });
+          orderedKeys.push(key);
+        }
+      };
+      if (ui.listScope === 'all' || ui.listScope === 'base') data.baseCategories.forEach(c => seedGroup('base', c));
+      if (ui.listScope === 'all' || ui.listScope === 'trip') data.tripCategories.forEach(c => seedGroup('trip', c));
+      filtered.forEach(item => { seedGroup(item.list, item.category); groupMap.get(`${item.list}::${item.category}`).items.push(item); });
+
+      const isFiltering = ui.statusFilter !== 'all' || ui.categoryFilter !== 'all' || q.length > 0;
+      const groups = orderedKeys.map(k => groupMap.get(k)).filter(g => !isFiltering || g.items.length > 0);
+      if (ui.sortByStatus) groups.forEach(g => g.items.sort((a, b) => getStatusMeta(a.status).order - getStatusMeta(b.status).order));
+
+      const baseCount = data.items.filter(i => i.list === 'base').length;
+      const tripCount = data.items.filter(i => i.list === 'trip').length;
+      const statusChips = [
+        { key: 'all', label: 'All', count: stats.total, dot: null },
+        { key: 'topack', label: 'To Pack', count: stats.notYet + stats.unset, dot: 'var(--error)' },
+        { key: 'Packing Day Of', label: 'Day Of', count: stats.dayOf, dot: 'var(--warning)' },
+        { key: 'Maybe', label: 'Maybe', count: stats.maybe, dot: 'var(--chart-1)' },
+        { key: 'Yes', label: 'Packed', count: stats.yes, dot: 'var(--success)' },
+        { key: "Don't Need", label: "Don't Need", count: stats.dontNeed, dot: 'var(--muted-foreground)' }
+      ];
+
+      container.innerHTML = `
+        <div class="stack">
+          <section class="card card-padded" style="display:flex;flex-direction:column;gap:14px;">
+            <div class="readiness-top">
+              <div>
+                <div class="readiness-label">
+                  ${ui.listScope === 'all' ? 'Overall Trip Readiness' : ui.listScope === 'base' ? 'Base List Readiness' : 'Trip Specific Readiness'}
+                </div>
+                <div class="readiness-metric">
+                  <span class="readiness-pct">${stats.pct}%</span>
+                  <span class="readiness-detail">
+                    <strong>${stats.yes}</strong> of <strong>${stats.required}</strong> needed items packed
+                    ${stats.maybe > 0 ? `· ${stats.maybe} maybe` : ''}
+                    ${stats.dontNeed > 0 ? `· ${stats.dontNeed} skipped` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div class="scope-switcher">
+                ${[
+                  { id: 'all', label: 'All', count: data.items.length },
+                  { id: 'base', label: 'Base List', count: baseCount },
+                  { id: 'trip', label: 'Trip Specific', count: tripCount }
+                ].map(s => `
+                  <button type="button" data-scope="${s.id}" class="scope-btn ${ui.listScope === s.id ? 'active' : ''}">
+                    <span>${s.label}</span><span class="tabular" style="opacity:0.7;">${s.count}</span>
+                  </button>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="progress-track">
+              <div class="progress-seg" style="width:${yesPct.toFixed(1)}%;background-color:var(--success);" title="${stats.yes} Packed"></div>
+              <div class="progress-seg" style="width:${dayOfPct.toFixed(1)}%;background-color:var(--warning);" title="${stats.dayOf} Packing Day Of"></div>
+            </div>
+
+            <div class="filter-row">
+              <div class="chip-wrap">
+                ${statusChips.map(ch => `
+                  <button type="button" data-status-filter="${escapeHtml(ch.key)}" class="chip status-filter-btn ${ui.statusFilter === ch.key ? 'active' : ''}">
+                    ${ch.dot ? `<span class="dot-sm" style="background-color:${ui.statusFilter === ch.key ? 'currentColor' : ch.dot};"></span>` : ''}
+                    <span>${ch.label}</span>
+                    <span class="tabular" style="opacity:0.75;">${ch.count}</span>
+                  </button>
+                `).join('')}
+              </div>
+
+              <div class="chip-wrap">
+                <button id="toggleHideDontNeed" type="button" class="toggle-btn ${ui.hideDontNeed ? 'on' : ''}">
+                  <span>${ui.hideDontNeed ? "Hiding Don't Need" : "Hide Don't Need"}</span>
+                </button>
+                <button id="toggleSortStatus" type="button" class="toggle-btn ${ui.sortByStatus ? 'on' : ''}" title="Put unpacked items at the top of each category">
+                  <span>${ui.sortByStatus ? 'Unpacked First' : 'Sheet Order'}</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section class="toolbar-row">
+            <div class="search-box">
+              <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input id="searchInput" class="search-input" type="text" value="${escapeHtml(ui.search)}" placeholder="Search items or categories..." />
+              ${ui.search ? '<button id="clearSearchBtn" type="button" class="search-clear">&times;</button>' : ''}
+            </div>
+
+            <div class="cat-scroll">
+              <button type="button" data-cat="all" class="chip chip-square cat-btn ${ui.categoryFilter === 'all' ? 'active' : ''}">All Categories</button>
+              ${availableCategories.map(c => `
+                <button type="button" data-cat="${escapeHtml(c)}" class="chip chip-square cat-btn ${ui.categoryFilter === c ? 'active' : ''}">${escapeHtml(c)}</button>
+              `).join('')}
+            </div>
+          </section>
+
+          ${groups.length === 0 ? `
+            <div class="card empty-state">
+              <p style="margin:0 0 6px;font-weight:600;">No items match your current filters</p>
+              <p class="text-xs muted" style="margin:0 0 14px;">Try clearing the search or switching status filters.</p>
+              <button id="btnClearFilters" type="button" class="btn btn-primary">Clear Filters</button>
+            </div>
+          ` : `
+            <div class="grid-2">${groups.map(g => renderCategoryCard(g)).join('')}</div>
+          `}
+        </div>
+      `;
+
+      bindChecklistEvents();
+    }
+
+    function renderCategoryCard(group) {
+      const allGroupItems = data.items.filter(i => i.list === group.list && i.category === group.category);
+      const gStats = computeStats(allGroupItems);
+      const collapsed = !!ui.collapsedGroups[group.key];
+      const listLabel = group.list === 'base' ? 'Base List' : 'Trip Specific';
+
+      return `
+        <article class="card">
+          <div class="cat-header">
+            <button type="button" data-collapse="${escapeHtml(group.key)}" class="collapse-btn">
+              <svg class="chevron ${collapsed ? 'collapsed' : ''}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              <h2>${escapeHtml(group.category)}</h2>
+              ${ui.listScope === 'all' ? `
+                <span class="list-tag" style="background-color:color-mix(in srgb, ${group.list === 'trip' ? 'var(--chart-2)' : 'var(--foreground)'} 8%, transparent);">${listLabel}</span>
+              ` : ''}
+            </button>
+
+            <div class="cat-header-right">
+              ${gStats.remaining > 0 ? `
+                <button type="button" data-pack-all-list="${group.list}" data-pack-all-cat="${escapeHtml(group.category)}" class="pack-all-btn" title="Mark remaining items as Packed">Pack all</button>
+              ` : `
+                <span class="text-xs" style="color:var(--success);font-weight:500;">All packed</span>
+              `}
+              <span class="cat-count">${gStats.yes}/${gStats.required}</span>
+            </div>
+          </div>
+
+          <div class="progress-thin">
+            <div class="progress-seg" style="width:${gStats.pct}%;background-color:var(--success);"></div>
+          </div>
+
+          ${collapsed ? '' : `
+            <ul class="item-list">${group.items.map(renderItemRow).join('')}</ul>
+            <form class="quick-add-form" data-list="${group.list}" data-category="${escapeHtml(group.category)}">
+              <svg width="14" height="14" class="muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <input type="text" class="quick-add-input" placeholder="Add to ${escapeHtml(group.category)}..." />
+              <button type="submit" class="link-btn">Add</button>
+            </form>
+          `}
+        </article>
+      `;
+    }
+
+    function renderItemRow(item) {
+      const meta = getStatusMeta(item.status);
+      const isPacked = item.status === 'Yes';
+      const isSkipped = item.status === "Don't Need";
+
+      return `
+        <li class="item-row ${isSkipped ? 'skipped' : ''}">
+          <div class="item-left">
+            <button type="button" data-toggle-id="${item.id}" aria-label="Toggle packed status for ${escapeHtml(item.name)}"
+                    class="check-circle ${isPacked ? 'checked' : ''}">
+              ${isPacked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+            <span data-edit-id="${item.id}" title="Double-click to rename"
+                  class="item-name ${isSkipped ? 'skipped' : isPacked ? 'packed' : ''}">${escapeHtml(item.name)}</span>
+          </div>
+
+          <div class="item-right">
+            <button type="button" data-popover-id="${item.id}" class="status-pill ${meta.cls}">
+              <span class="dot-sm" style="background-color:${meta.dot};"></span>
+              <span>${escapeHtml(meta.short)}</span>
+            </button>
+            <button type="button" data-delete-id="${item.id}" title="Delete item" class="icon-del">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </li>
+      `;
+    }
+
+    function bindChecklistEvents() {
+      document.querySelectorAll('.scope-btn').forEach(btn => {
+        btn.addEventListener('click', () => { ui.listScope = btn.dataset.scope; ui.categoryFilter = 'all'; render(); });
+      });
+      document.querySelectorAll('.status-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.statusFilter;
+          ui.statusFilter = (ui.statusFilter === val && val !== 'all') ? 'all' : val;
+          render();
+        });
+      });
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.addEventListener('click', () => { ui.categoryFilter = btn.dataset.cat; render(); });
+      });
+
+      const hideBtn = document.getElementById('toggleHideDontNeed');
+      if (hideBtn) hideBtn.addEventListener('click', () => { ui.hideDontNeed = !ui.hideDontNeed; render(); });
+
+      const sortBtn = document.getElementById('toggleSortStatus');
+      if (sortBtn) sortBtn.addEventListener('click', () => { ui.sortByStatus = !ui.sortByStatus; render(); });
+
+      const searchEl = document.getElementById('searchInput');
+      if (searchEl) {
+        searchEl.addEventListener('input', (e) => {
+          const pos = e.target.selectionStart;
+          ui.search = e.target.value;
+          render();
+          const newInput = document.getElementById('searchInput');
+          if (newInput) { newInput.focus(); newInput.setSelectionRange(pos, pos); }
+        });
+      }
+
+      const clearSearchBtn = document.getElementById('clearSearchBtn');
+      if (clearSearchBtn) clearSearchBtn.addEventListener('click', () => { ui.search = ''; render(); });
+
+      const clearFiltersBtn = document.getElementById('btnClearFilters');
+      if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', () => {
+        ui.statusFilter = 'all'; ui.categoryFilter = 'all'; ui.search = ''; ui.hideDontNeed = false; render();
+      });
+
+      document.querySelectorAll('.collapse-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const k = btn.dataset.collapse;
+          ui.collapsedGroups[k] = !ui.collapsedGroups[k];
+          render();
+        });
+      });
+
+      document.querySelectorAll('.pack-all-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const list = btn.dataset.packAllList;
+          const cat = btn.dataset.packAllCat;
+          const prev = clone(data);
+          let changed = 0;
+          data.items.forEach(i => {
+            if (i.list === list && i.category === cat && (i.status === 'Not Yet' || i.status === 'Packing Day Of' || i.status === '')) {
+              i.status = 'Yes'; changed++;
+            }
+          });
+          if (changed > 0) {
+            saveData(); render();
+            showToast(`Marked ${changed} item${changed > 1 ? 's' : ''} in ${cat} as Packed`, () => { data = prev; saveData(); render(); });
+          }
+        });
+      });
+
+      document.querySelectorAll('[data-toggle-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = data.items.find(i => i.id === btn.dataset.toggleId);
+          if (!item) return;
+          item.status = item.status === 'Yes' ? 'Not Yet' : 'Yes';
+          saveData(); render();
+        });
+      });
+
+      document.querySelectorAll('[data-popover-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); openStatusPopover(btn.dataset.popoverId, btn); });
+      });
+
+      document.querySelectorAll('[data-delete-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = data.items.find(i => i.id === btn.dataset.deleteId);
+          if (!item) return;
+          const prev = clone(data);
+          data.items = data.items.filter(i => i.id !== item.id);
+          saveData(); render();
+          showToast(`Removed "${item.name}"`, () => { data = prev; saveData(); render(); });
+        });
+      });
+
+      document.querySelectorAll('[data-edit-id]').forEach(span => {
+        span.addEventListener('dblclick', () => {
+          const item = data.items.find(i => i.id === span.dataset.editId);
+          if (!item) return;
+          const input = document.createElement('input');
+          input.type = 'text'; input.value = item.name; input.className = 'inline-edit';
+          span.replaceWith(input);
+          input.focus(); input.select();
+          const commit = () => {
+            const val = input.value.trim();
+            if (val && val !== item.name) { item.name = val; saveData(); }
+            render();
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') input.blur();
+            if (ev.key === 'Escape') render();
+          });
+        });
+      });
+
+      document.querySelectorAll('.quick-add-form').forEach(form => {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const input = form.querySelector('input');
+          const name = input.value.trim();
+          if (!name) return;
+          const list = form.dataset.list;
+          const category = form.dataset.category;
+          data.items.push({ id: `${list}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, list, category, name, status: 'Not Yet' });
+          saveData(); render();
+          showToast(`Added "${name}" to ${category}`);
+        });
+      });
+    }
+
+    function openStatusPopover(itemId, anchorEl) {
+      const pop = document.getElementById('statusPopover');
+      if (ui.openPopoverItemId === itemId && !pop.classList.contains('hidden')) { closePopover(); return; }
+      ui.openPopoverItemId = itemId;
+      const item = data.items.find(i => i.id === itemId);
+      if (!item) return;
+
+      const options = STATUSES.filter(s => s.value !== '');
+      pop.innerHTML = options.map(st => `
+        <button type="button" data-pick-status="${escapeHtml(st.value)}" class="pop-opt" style="${item.status === st.value ? 'font-weight:600;' : ''}">
+          <span style="display:flex;align-items:center;gap:8px;">
+            <span class="dot" style="background-color:${st.dot};"></span>
+            <span>${escapeHtml(st.value)}</span>
+          </span>
+          ${item.status === st.value ? '<svg width="14" height="14" style="color:var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+        </button>
+      `).join('');
+
+      pop.classList.remove('hidden');
+      const rect = anchorEl.getBoundingClientRect();
+      const popW = 176;
+      const popH = pop.offsetHeight || 190;
+      let left = Math.max(8, Math.min(rect.right - popW, window.innerWidth - popW - 8));
+      let top = rect.bottom + 6;
+      if (top + popH > window.innerHeight - 8) top = Math.max(8, rect.top - popH - 6);
+      pop.style.left = `${left}px`;
+      pop.style.top = `${top}px`;
+
+      pop.querySelectorAll('[data-pick-status]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          item.status = btn.dataset.pickStatus;
+          saveData(); closePopover(); render();
+        });
+      });
+    }
+
+    function closePopover() {
+      const pop = document.getElementById('statusPopover');
+      if (pop) pop.classList.add('hidden');
+      ui.openPopoverItemId = null;
+    }
+
+    // VIEW 2: OUTFITS PLANNER
+    function renderOutfitsView(container) {
+      let totalPieces = 0, trackedPacked = 0, untracked = 0;
+      data.outfits.forEach(d => {
+        [...d.daytime, ...d.nighttime].forEach(p => {
+          totalPieces++;
+          const m = findMatchingPackingItem(p);
+          if (!m) untracked++;
+          else if (m.status === 'Yes') trackedPacked++;
+        });
+      });
+
+      container.innerHTML = `
+        <div class="stack">
+          <section class="card card-padded" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+            <div>
+              <h2 style="margin:0;font-size:14px;font-weight:600;">Day-by-Day Outfit Planner</h2>
+              <p class="text-xs muted" style="margin:3px 0 0;">
+                ${data.outfits.length} days · ${totalPieces} planned pieces ·
+                <span style="color:var(--success);font-weight:500;">${trackedPacked} packed</span>
+                ${untracked > 0 ? ` · ${untracked} not yet on packing list (click "+ Track" to add)` : ''}
+              </p>
+            </div>
+            <button id="btnAddDay" type="button" class="btn btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Add Day
+            </button>
+          </section>
+
+          <div class="grid-3">${data.outfits.map(renderOutfitDayCard).join('')}</div>
+        </div>
+      `;
+
+      bindOutfitsEvents();
+    }
+
+    function renderOutfitSlot(dayId, slot, pieces) {
+      const isDay = slot === 'daytime';
+      return `
+        <div class="slot-block">
+          <div class="slot-head">
+            <span class="slot-label">
+              ${isDay
+                ? '<svg width="14" height="14" style="color:var(--warning);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
+                : '<svg width="14" height="14" style="color:var(--chart-1);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'}
+              ${isDay ? 'Daytime' : 'Nighttime'}
+            </span>
+            <span class="text-xs muted tabular">${pieces.length}</span>
+          </div>
+
+          ${pieces.length === 0 ? '<p class="text-xs muted" style="margin:2px 0;font-style:italic;">No pieces planned yet</p>' : `
+            <ul class="outfit-list">
+              ${pieces.map((piece, idx) => {
+                const match = findMatchingPackingItem(piece);
+                const meta = match ? getStatusMeta(match.status) : null;
+                return `
+                  <li class="outfit-piece">
+                    <span class="text-xs" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(piece)}</span>
+                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                      ${match ? `
+                        <button type="button" data-outfit-toggle-item="${match.id}" title="Linked to ${escapeHtml(match.name)}. Click to toggle packed." class="status-pill ${meta.cls}" style="padding:1px 8px;">
+                          <span class="dot-sm" style="background-color:${meta.dot};"></span><span>${escapeHtml(meta.short)}</span>
+                        </button>
+                      ` : `
+                        <button type="button" data-track-piece="${escapeHtml(piece)}" title="Add to Trip Specific" class="track-btn">+ Track</button>
+                      `}
+                      <button type="button" data-remove-piece-day="${dayId}" data-remove-piece-slot="${slot}" data-remove-piece-idx="${idx}" title="Remove piece" class="icon-del" style="width:20px;height:20px;">&times;</button>
+                    </div>
+                  </li>
+                `;
+              }).join('')}
+            </ul>
+          `}
+
+          <form class="outfit-add-form" data-day="${dayId}" data-slot="${slot}">
+            <input type="text" class="outfit-add-input" placeholder="Add ${isDay ? 'daytime' : 'nighttime'} piece..." />
+            <button type="submit" class="link-btn">Add</button>
+          </form>
+        </div>
+      `;
+    }
+
+    function renderOutfitDayCard(day) {
+      return `
+        <article class="card">
+          <div class="cat-header">
+            <h3 data-day-title="${day.id}" class="day-title" contenteditable="true" spellcheck="false" title="Click to edit date label"
+                style="margin:0;font-size:14px;font-weight:600;outline:none;border-radius:6px;padding:0 4px;margin-left:-4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+              ${escapeHtml(day.label)}
+            </h3>
+            <button type="button" data-delete-day="${day.id}" class="pack-all-btn" style="flex-shrink:0;">Remove</button>
+          </div>
+          <div>
+            ${renderOutfitSlot(day.id, 'daytime', day.daytime)}
+            ${renderOutfitSlot(day.id, 'nighttime', day.nighttime)}
+          </div>
+        </article>
+      `;
+    }
+
+    function bindOutfitsEvents() {
+      const btnAddDay = document.getElementById('btnAddDay');
+      if (btnAddDay) {
+        btnAddDay.addEventListener('click', () => {
+          data.outfits.push({ id: `day-${Date.now()}`, label: `Day ${data.outfits.length + 1}`, daytime: [], nighttime: [] });
+          saveData(); render();
+        });
+      }
+      document.querySelectorAll('[data-day-title]').forEach(el => {
+        el.addEventListener('blur', () => {
+          const day = data.outfits.find(d => d.id === el.dataset.dayTitle);
+          const val = el.textContent.trim();
+          if (day && val && val !== day.label) { day.label = val; saveData(); }
+        });
+        el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
+      });
+      document.querySelectorAll('[data-delete-day]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const day = data.outfits.find(d => d.id === btn.dataset.deleteDay);
+          if (!day) return;
+          const prev = clone(data);
+          data.outfits = data.outfits.filter(d => d.id !== day.id);
+          saveData(); render();
+          showToast(`Removed ${day.label}`, () => { data = prev; saveData(); render(); });
+        });
+      });
+      document.querySelectorAll('.outfit-add-form').forEach(form => {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const val = form.querySelector('input').value.trim();
+          if (!val) return;
+          const day = data.outfits.find(d => d.id === form.dataset.day);
+          if (!day) return;
+          day[form.dataset.slot].push(val);
+          saveData(); render();
+        });
+      });
+      document.querySelectorAll('[data-remove-piece-day]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const day = data.outfits.find(d => d.id === btn.dataset.removePieceDay);
+          if (!day) return;
+          const prev = clone(data);
+          const [removed] = day[btn.dataset.removePieceSlot].splice(Number(btn.dataset.removePieceIdx), 1);
+          saveData(); render();
+          showToast(`Removed "${removed}" from ${day.label}`, () => { data = prev; saveData(); render(); });
+        });
+      });
+      document.querySelectorAll('[data-outfit-toggle-item]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = data.items.find(i => i.id === btn.dataset.outfitToggleItem);
+          if (!item) return;
+          item.status = item.status === 'Yes' ? 'Not Yet' : 'Yes';
+          saveData(); render();
+        });
+      });
+      document.querySelectorAll('[data-track-piece]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.trackPiece;
+          const cat = /heel|boot|sandal|shoe|sneaker|slide|dunk/i.test(name) ? 'Shoes' : /belt|bag|purse|scarf|glass|hat|cap|jewelry/i.test(name) ? 'Accessories' : 'Clothing';
+          data.items.push({ id: `trip-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`, list: 'trip', category: cat, name, status: 'Not Yet' });
+          saveData(); render();
+          showToast(`Added "${name}" to Trip Specific → ${cat}`);
+        });
+      });
+    }
+
+    // VIEW 3: ELECTRONICS & CHARGERS
+    function renderElectronicsView(container) {
+      const byCharger = new Map();
+      data.electronics.forEach(e => {
+        const key = (e.charger || '???').trim() || '???';
+        if (!byCharger.has(key)) byCharger.set(key, []);
+        byCharger.get(key).push(e);
+      });
+      const chargerEntries = Array.from(byCharger.entries()).sort((a, b) => {
+        if (a[0] === '???') return -1;
+        if (b[0] === '???') return 1;
+        return b[1].length - a[1].length;
+      });
+
+      container.innerHTML = `
+        <div class="stack">
+          <section class="grid-4">
+            ${chargerEntries.map(([chargerType, devices]) => {
+              const isUnknown = chargerType === '???';
+              const matchedCables = findMatchingChargersForType(chargerType);
+              const anyPacked = matchedCables.some(c => c.status === 'Yes');
+              return `
+                <div class="card card-padded" style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <span class="status-pill ${isUnknown ? 'st-dayof' : 'st-maybe'}" style="cursor:default;">${isUnknown ? 'Needs Check (???)' : escapeHtml(chargerType)}</span>
+                    <span class="text-xs muted tabular">${devices.length} device${devices.length > 1 ? 's' : ''}</span>
+                  </div>
+                  <p class="text-xs" style="margin:0;line-height:1.5;">${devices.map(d => escapeHtml(d.device)).join(', ')}</p>
+                  <div class="text-xs" style="padding-top:8px;border-top:1px solid var(--card-border);">
+                    ${isUnknown
+                      ? '<span style="color:var(--warning);">Check cable type below</span>'
+                      : matchedCables.length > 0
+                        ? `<span style="color:${anyPacked ? 'var(--success)' : 'var(--error)'};">${anyPacked ? '✓ Cable packed in Base List' : 'Cable not packed yet'}</span>`
+                        : '<span class="muted">Verify cable in Base List</span>'}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </section>
+
+          <section class="card">
+            <div class="cat-header">
+              <div>
+                <h2 style="margin:0;font-size:14px;font-weight:600;">Electronics &amp; Charger Reference</h2>
+                <p class="text-xs muted" style="margin:2px 0 0;">Update charger types inline and verify packing status against Base List → Electronic.</p>
+              </div>
+              <span class="text-xs muted tabular">${data.electronics.length} devices</span>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Device</th>
+                    <th>Charger Type</th>
+                    <th>Base List Status</th>
+                    <th style="text-align:right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${data.electronics.map(row => {
+                    const match = findMatchingPackingItem(row.device);
+                    const meta = match ? getStatusMeta(match.status) : null;
+                    const isUnknown = row.charger === '???' || !row.charger.trim();
+                    const options = CHARGER_OPTIONS.includes(row.charger) ? CHARGER_OPTIONS : [row.charger, ...CHARGER_OPTIONS];
+                    return `
+                      <tr>
+                        <td style="font-weight:500;">${escapeHtml(row.device)}</td>
+                        <td>
+                          <select data-elec-charger="${row.id}" class="select-input ${isUnknown ? 'st-dayof' : ''}">
+                            ${options.map(opt => `<option value="${escapeHtml(opt)}" ${row.charger === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
+                          </select>
+                        </td>
+                        <td>
+                          ${match ? `
+                            <button type="button" data-elec-toggle-item="${match.id}" title="Linked to ${escapeHtml(match.name)} in Base List. Click to toggle." class="status-pill ${meta.cls}">
+                              <span class="dot-sm" style="background-color:${meta.dot};"></span><span>${escapeHtml(meta.short)}</span>
+                            </button>
+                          ` : `
+                            <button type="button" data-elec-track="${escapeHtml(row.device)}" class="track-btn">+ Add to Base List</button>
+                          `}
+                        </td>
+                        <td style="text-align:right;">
+                          <button type="button" data-elec-delete="${row.id}" class="pack-all-btn">Remove</button>
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <form id="addElecForm" class="elec-add-form">
+              <input id="newElecDevice" type="text" class="text-input" style="flex:1;" placeholder="Add device (e.g., Kindle, Curling Iron)..." />
+              <select id="newElecCharger" class="select-input">
+                ${CHARGER_OPTIONS.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+              </select>
+              <button type="submit" class="btn btn-primary">Add Device</button>
+            </form>
+          </section>
+        </div>
+      `;
+
+      bindElectronicsEvents();
+    }
+
+    function bindElectronicsEvents() {
+      document.querySelectorAll('[data-elec-charger]').forEach(sel => {
+        sel.addEventListener('change', () => {
+          const row = data.electronics.find(e => e.id === sel.dataset.elecCharger);
+          if (!row) return;
+          row.charger = sel.value; saveData(); render();
+        });
+      });
+      document.querySelectorAll('[data-elec-toggle-item]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const item = data.items.find(i => i.id === btn.dataset.elecToggleItem);
+          if (!item) return;
+          item.status = item.status === 'Yes' ? 'Not Yet' : 'Yes'; saveData(); render();
+        });
+      });
+      document.querySelectorAll('[data-elec-track]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const name = btn.dataset.elecTrack;
+          data.items.push({ id: `base-${Date.now()}`, list: 'base', category: 'Electronic', name, status: 'Not Yet' });
+          saveData(); render(); showToast(`Added "${name}" to Base List → Electronic`);
+        });
+      });
+      document.querySelectorAll('[data-elec-delete]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const row = data.electronics.find(e => e.id === btn.dataset.elecDelete);
+          if (!row) return;
+          const prev = clone(data);
+          data.electronics = data.electronics.filter(e => e.id !== row.id);
+          saveData(); render();
+          showToast(`Removed "${row.device}"`, () => { data = prev; saveData(); render(); });
+        });
+      });
+      const form = document.getElementById('addElecForm');
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const device = document.getElementById('newElecDevice').value.trim();
+          const charger = document.getElementById('newElecCharger').value;
+          if (!device) return;
+          data.electronics.push({ id: `elec-${Date.now()}`, device, charger });
+          saveData(); render(); showToast(`Added "${device}" (${charger})`);
+        });
+      }
+    }
+
+    // MODALS
+    function openModal(html) {
+      document.getElementById('modalContent').innerHTML = html;
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+    }
+    function closeModal() { document.getElementById('modalBackdrop').classList.add('hidden'); }
+
+    function openAddItemModal() {
+      const renderCatOptions = (list) => (list === 'base' ? data.baseCategories : data.tripCategories)
+        .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+
+      openModal(`
+        <div class="modal-head">
+          <h3>Add Packing Item</h3>
+          <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
+        </div>
+        <form id="modalAddItemForm" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label class="field-label">Item Name</label>
+            <input id="mItemName" type="text" required class="text-input" style="width:100%;" placeholder="e.g., Travel Steamer, Passport..." />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label class="field-label">List</label>
+              <select id="mItemList" class="select-input" style="width:100%;">
+                <option value="trip" ${ui.listScope === 'trip' ? 'selected' : ''}>Trip Specific</option>
+                <option value="base" ${ui.listScope === 'base' ? 'selected' : ''}>Base List</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label">Category</label>
+              <select id="mItemCat" class="select-input" style="width:100%;">${renderCatOptions(ui.listScope === 'base' ? 'base' : 'trip')}</select>
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Initial Status</label>
+            <select id="mItemStatus" class="select-input" style="width:100%;">
+              <option value="Not Yet" selected>Not Yet</option>
+              <option value="Packing Day Of">Packing Day Of</option>
+              <option value="Maybe">Maybe</option>
+              <option value="Yes">Yes (Packed)</option>
+              <option value="Don't Need">Don't Need</option>
+            </select>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px;">
+            <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Item</button>
+          </div>
+        </form>
+      `);
+
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      document.getElementById('cancelModalBtn').onclick = closeModal;
+      const listSel = document.getElementById('mItemList');
+      const catSel = document.getElementById('mItemCat');
+      listSel.addEventListener('change', () => { catSel.innerHTML = renderCatOptions(listSel.value); });
+      document.getElementById('mItemName').focus();
+
+      document.getElementById('modalAddItemForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('mItemName').value.trim();
+        if (!name) return;
+        const list = listSel.value;
+        const category = catSel.value;
+        const status = document.getElementById('mItemStatus').value;
+        data.items.push({ id: `${list}-${Date.now()}`, list, category, name, status });
+        saveData(); closeModal(); ui.activeTab = 'checklist'; render();
+        showToast(`Added "${name}" to ${list === 'base' ? 'Base List' : 'Trip Specific'} → ${category}`);
+      });
+    }
+
+    function openNewTripModal() {
+      openModal(`
+        <div class="modal-head">
+          <h3>Start a New Trip</h3>
+          <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
+        </div>
+        <p class="text-xs muted" style="margin:0;">Reuse your packing list cleanly for your next trip without losing your master Base List items.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label class="check-card">
+            <input id="optKeepDayOf" type="checkbox" checked style="margin-top:2px;accent-color:var(--primary);" />
+            <span><strong style="display:block;">Keep "Packing Day Of" items</strong><span class="muted">Keep Water Bottle, Laptop, Sweatpants, etc. tagged as Day Of</span></span>
+          </label>
+          <label class="check-card">
+            <input id="optKeepDontNeed" type="checkbox" checked style="margin-top:2px;accent-color:var(--primary);" />
+            <span><strong style="display:block;">Keep "Don't Need" selections</strong><span class="muted">Uncheck if you want to reconsider every skipped item</span></span>
+          </label>
+          <label class="check-card">
+            <input id="optClearTripSpecific" type="checkbox" style="margin-top:2px;accent-color:var(--primary);" />
+            <span><strong style="display:block;">Clear Trip Specific items &amp; Outfits</strong><span class="muted">Start fresh on trip-specific clothes/outfits while keeping Base List</span></span>
+          </label>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px;">
+          <button type="button" id="btnRestoreSheet" class="text-xs muted" style="text-decoration:underline;cursor:pointer;">Restore original sheet</button>
+          <div style="display:flex;gap:8px;">
+            <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+            <button type="button" id="confirmNewTripBtn" class="btn btn-primary">Reset Checkboxes</button>
+          </div>
+        </div>
+      `);
+
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      document.getElementById('cancelModalBtn').onclick = closeModal;
+      document.getElementById('btnRestoreSheet').onclick = () => {
+        const prev = clone(data);
+        data = clone(INITIAL_DATA);
+        saveData(); closeModal(); render();
+        showToast('Restored original Google Sheet data', () => { data = prev; saveData(); render(); });
+      };
+      document.getElementById('confirmNewTripBtn').onclick = () => {
+        const keepDayOf = document.getElementById('optKeepDayOf').checked;
+        const keepDontNeed = document.getElementById('optKeepDontNeed').checked;
+        const clearTrip = document.getElementById('optClearTripSpecific').checked;
+        const prev = clone(data);
+        if (clearTrip) {
+          data.items = data.items.filter(i => i.list === 'base');
+          data.outfits = data.outfits.map(d => ({ ...d, daytime: [], nighttime: [] }));
+        }
+        data.items.forEach(item => {
+          if (item.status === 'Yes') item.status = 'Not Yet';
+          else if (item.status === 'Packing Day Of' && !keepDayOf) item.status = 'Not Yet';
+          else if (item.status === "Don't Need" && !keepDontNeed) item.status = 'Not Yet';
+        });
+        saveData(); closeModal(); render();
+        showToast('Reset list for a new trip', () => { data = prev; saveData(); render(); });
+      };
+    }
+
+    function openExportModal() {
+      openModal(`
+        <div class="modal-head">
+          <h3>Export Packing Tracker</h3>
+          <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
+        </div>
+        <p class="text-xs muted" style="margin:0;">Download your updated checklist as a CSV (ready for Google Sheets) or a full JSON backup.</p>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button type="button" id="dlCsvBtn" class="export-card">
+            <div>
+              <div class="text-xs" style="font-weight:600;">Download Checklist CSV</div>
+              <div class="text-xs muted">List, Category, Item, Status (${data.items.length} rows)</div>
+            </div>
+            <span class="link-btn">.csv</span>
+          </button>
+          <button type="button" id="dlJsonBtn" class="export-card">
+            <div>
+              <div class="text-xs" style="font-weight:600;">Download Full Backup JSON</div>
+              <div class="text-xs muted">Includes Base List, Trip Specific, Outfits &amp; Electronics</div>
+            </div>
+            <span class="link-btn">.json</span>
+          </button>
+        </div>
+        <div style="display:flex;justify-content:flex-end;padding-top:4px;">
+          <button type="button" id="cancelModalBtn" class="btn btn-secondary">Close</button>
+        </div>
+      `);
+
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      document.getElementById('cancelModalBtn').onclick = closeModal;
+      document.getElementById('dlCsvBtn').onclick = () => {
+        const csvEscape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const rows = [['List', 'Category', 'Item', 'Packed']];
+        data.items.forEach(i => rows.push([i.list === 'base' ? 'Base List' : 'Trip Specific', i.category, i.name, i.status]));
+        triggerDownload('packing-list.csv', rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8;');
+        closeModal(); showToast('Downloaded packing-list.csv');
+      };
+      document.getElementById('dlJsonBtn').onclick = () => {
+        triggerDownload('packing-list-backup.json', JSON.stringify(data, null, 2), 'application/json');
+        closeModal(); showToast('Downloaded packing-list-backup.json');
+      };
+    }
+
+    function triggerDownload(filename, content, mime) {
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // Global Events
+    document.querySelectorAll('.main-tab').forEach(btn => {
+      btn.addEventListener('click', () => { ui.activeTab = btn.dataset.tab; render(); });
+    });
+    document.getElementById('btnAddItemGlobal').addEventListener('click', openAddItemModal);
+    document.getElementById('btnNewTrip').addEventListener('click', openNewTripModal);
+    document.getElementById('btnExport').addEventListener('click', openExportModal);
+
+    document.getElementById('tripTitle').addEventListener('blur', (e) => {
+      const val = e.target.textContent.trim();
+      if (val) { data.tripTitle = val; saveData(); } else { e.target.textContent = data.tripTitle; }
+    });
+    document.getElementById('tripTitle').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+    document.getElementById('tripSubtitle').addEventListener('blur', (e) => {
+      const val = e.target.textContent.trim();
+      if (val) { data.tripSubtitle = val; saveData(); } else { e.target.textContent = data.tripSubtitle; }
+    });
+    document.getElementById('tripSubtitle').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
+
+    document.addEventListener('click', () => closePopover());
+    document.getElementById('modalBackdrop').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closePopover(); closeModal(); } });
+
+    render();
+  </script>
+</body>
+</html>
