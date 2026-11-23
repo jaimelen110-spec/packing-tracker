@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Packing List — Interactive Trip Tracker</title>
+  <title>Packing List — Multi-Trip Tracker</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     html, body { min-height: 100%; margin: 0; padding: 0; }
@@ -20,15 +20,70 @@
     button { background: none; border: none; padding: 0; }
 
     .container {
-      max-width: 1200px;
+      max-width: 1220px;
       margin: 0 auto;
-      padding: 20px 16px 40px;
+      padding: 18px 16px 48px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 18px;
     }
     @media (min-width: 640px) {
-      .container { padding: 28px 24px 48px; }
+      .container { padding: 24px 24px 56px; }
+    }
+
+    /* Trips Switcher Strip */
+    .trips-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .trip-pill {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background-color: var(--card);
+      cursor: pointer;
+      flex-shrink: 0;
+      text-align: left;
+      transition: border-color 140ms ease, background-color 140ms ease;
+      min-width: 158px;
+    }
+    .trip-pill:hover { border-color: color-mix(in srgb, var(--primary) 55%, var(--border)); }
+    .trip-pill.active {
+      border-color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 9%, var(--card));
+    }
+    .trip-pill-info { min-width: 0; flex: 1; }
+    .trip-pill-name {
+      font-size: 13px; font-weight: 600; color: var(--foreground);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;
+    }
+    .trip-pill-sub {
+      font-size: 12px; color: var(--muted-foreground);
+      white-space: nowrap; font-variant-numeric: tabular-nums;
+    }
+    .trip-pill-ring {
+      font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+      padding: 2px 7px; border-radius: 999px;
+      background-color: color-mix(in srgb, var(--success) 14%, transparent);
+      color: var(--success);
+      flex-shrink: 0;
+    }
+    .trip-add-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 14px; border-radius: 12px; font-size: 12px; font-weight: 600;
+      border: 1px dashed var(--border); color: var(--primary);
+      background-color: transparent; cursor: pointer; flex-shrink: 0;
+      transition: background-color 140ms ease, border-color 140ms ease;
+    }
+    .trip-add-pill:hover {
+      border-color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 8%, transparent);
     }
 
     /* Header */
@@ -39,12 +94,8 @@
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
-    @media (min-width: 680px) {
-      .app-header {
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
+    @media (min-width: 720px) {
+      .app-header { flex-direction: row; align-items: center; justify-content: space-between; }
     }
     .brand-row { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }
     .brand-icon {
@@ -56,17 +107,18 @@
     }
     .title-wrap { min-width: 0; }
     .title-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-    .trip-title {
-      margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.02em;
-      color: var(--foreground); border-radius: 6px; padding: 0 4px; margin-left: -4px; outline: none;
-    }
-    .trip-title:focus, .trip-subtitle:focus, .day-title:focus {
-      box-shadow: 0 0 0 2px var(--primary);
-    }
+    .trip-title { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -0.02em; color: var(--foreground); }
     .trip-subtitle {
       font-size: 12px; font-weight: 500; padding: 2px 10px; border-radius: 999px;
       border: 1px solid var(--border); background-color: var(--card); color: var(--muted-foreground);
-      outline: none;
+    }
+    .trip-edit-link {
+      font-size: 12px; color: var(--muted-foreground); cursor: pointer;
+      padding: 2px 6px; border-radius: 6px; transition: color 140ms ease, background-color 140ms ease;
+    }
+    .trip-edit-link:hover {
+      color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 8%, transparent);
     }
     .header-meta {
       margin: 3px 0 0; font-size: 12px; color: var(--muted-foreground);
@@ -81,27 +133,22 @@
       cursor: pointer; transition: opacity 140ms ease, background-color 140ms ease, border-color 140ms ease;
       white-space: nowrap;
     }
-    .btn-primary {
-      background-color: var(--primary); color: var(--primary-foreground);
-    }
+    .btn-primary { background-color: var(--primary); color: var(--primary-foreground); }
     .btn-primary:hover { opacity: 0.9; }
-    .btn-secondary {
-      background-color: var(--card); color: var(--foreground);
-      border: 1px solid var(--border);
+    .btn-secondary { background-color: var(--card); color: var(--foreground); border: 1px solid var(--border); }
+    .btn-secondary:hover { background-color: color-mix(in srgb, var(--foreground) 5%, var(--card)); }
+    .btn-danger {
+      background-color: color-mix(in srgb, var(--error) 12%, transparent);
+      color: var(--error);
+      border: 1px solid color-mix(in srgb, var(--error) 28%, transparent);
     }
-    .btn-secondary:hover {
-      background-color: color-mix(in srgb, var(--foreground) 5%, var(--card));
-    }
+    .btn-danger:hover { background-color: color-mix(in srgb, var(--error) 18%, transparent); }
 
     /* Main Tabs */
-    .nav-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-wrap: wrap;
-    }
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
     .tab-group {
       display: inline-flex; padding: 4px; border-radius: 12px;
-      background-color: var(--card); border: 1px solid var(--border); gap: 4px;
-      flex-wrap: wrap;
+      background-color: var(--card); border: 1px solid var(--border); gap: 4px; flex-wrap: wrap;
     }
     .main-tab {
       display: inline-flex; align-items: center; gap: 8px;
@@ -110,13 +157,8 @@
       color: var(--muted-foreground);
     }
     .main-tab:hover { color: var(--foreground); }
-    .main-tab.active {
-      background-color: var(--primary); color: var(--primary-foreground);
-    }
-    .tab-badge {
-      padding: 1px 6px; border-radius: 6px; font-size: 12px;
-      font-variant-numeric: tabular-nums;
-    }
+    .main-tab.active { background-color: var(--primary); color: var(--primary-foreground); }
+    .tab-badge { padding: 1px 6px; border-radius: 6px; font-size: 12px; font-variant-numeric: tabular-nums; }
     .quick-stats {
       display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
       font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums;
@@ -126,34 +168,31 @@
     .dot { width: 7px; height: 7px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
     .dot-sm { width: 6px; height: 6px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
 
-    /* Cards & Layout */
+    /* Cards & Grids */
     .stack { display: flex; flex-direction: column; gap: 16px; }
-    .card {
-      border-radius: 16px; border: 1px solid var(--border);
-      background-color: var(--card); overflow: hidden;
-    }
+    .card { border-radius: 16px; border: 1px solid var(--border); background-color: var(--card); overflow: hidden; }
     .card-padded { padding: 18px 20px; }
-    .grid-2 {
-      display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start;
-    }
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
     @media (min-width: 960px) { .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-    .grid-3 {
-      display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start;
-    }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
     @media (min-width: 720px) { .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 1080px) { .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-
-    .grid-4 {
-      display: grid; grid-template-columns: 1fr; gap: 12px;
-    }
+    .grid-4 { display: grid; grid-template-columns: 1fr; gap: 12px; }
     @media (min-width: 640px) { .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
-    /* Readiness Section */
-    .readiness-top {
-      display: flex; flex-direction: column; gap: 12px;
+    /* Alert Banner */
+    .callout {
+      border-radius: 14px;
+      padding: 12px 16px;
+      border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border));
+      background-color: color-mix(in srgb, var(--warning) 10%, var(--card));
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      font-size: 12px;
     }
+
+    /* Readiness Section */
+    .readiness-top { display: flex; flex-direction: column; gap: 12px; }
     @media (min-width: 640px) {
       .readiness-top { flex-direction: row; align-items: flex-end; justify-content: space-between; }
     }
@@ -174,24 +213,16 @@
       color: var(--muted-foreground); border: 1px solid transparent; transition: all 140ms ease;
     }
     .scope-btn:hover { color: var(--foreground); }
-    .scope-btn.active {
-      background-color: var(--card); color: var(--foreground); border-color: var(--border);
-    }
+    .scope-btn.active { background-color: var(--card); color: var(--foreground); border-color: var(--border); }
 
     .progress-track {
       width: 100%; height: 10px; border-radius: 999px; overflow: hidden; display: flex;
       background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
     }
-    .progress-thin {
-      width: 100%; height: 4px;
-      background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
-    }
+    .progress-thin { width: 100%; height: 4px; background-color: color-mix(in srgb, var(--foreground) 6%, transparent); }
     .progress-seg { height: 100%; transition: width 260ms ease; }
 
-    .filter-row {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; flex-wrap: wrap;
-    }
+    .filter-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
     .chip-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
     .chip {
@@ -201,9 +232,7 @@
       cursor: pointer; transition: all 140ms ease; white-space: nowrap;
     }
     .chip:hover { background-color: color-mix(in srgb, var(--foreground) 5%, var(--card)); }
-    .chip.active {
-      background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary);
-    }
+    .chip.active { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
     .chip-square { border-radius: 8px; }
 
     .toggle-btn {
@@ -219,17 +248,12 @@
     }
 
     /* Search & Category Bar */
-    .toolbar-row {
-      display: flex; flex-direction: column; gap: 10px;
-    }
+    .toolbar-row { display: flex; flex-direction: column; gap: 10px; }
     @media (min-width: 768px) {
       .toolbar-row { flex-direction: row; align-items: center; justify-content: space-between; }
     }
     .search-box { position: relative; width: 100%; max-width: 300px; flex-shrink: 0; }
-    .search-icon {
-      position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
-      color: var(--muted-foreground); pointer-events: none;
-    }
+    .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted-foreground); pointer-events: none; }
     .search-input {
       width: 100%; padding: 7px 30px 7px 34px; border-radius: 12px; font-size: 12px;
       background-color: var(--card); border: 1px solid var(--border);
@@ -237,23 +261,15 @@
     }
     .search-input::placeholder { color: var(--placeholder); }
     .search-input:focus { border-color: var(--primary); }
-    .search-clear {
-      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-      color: var(--muted-foreground); cursor: pointer; font-size: 16px; line-height: 1;
-    }
-    .cat-scroll {
-      display: flex; align-items: center; gap: 6px; overflow-x: auto; padding-bottom: 2px;
-    }
+    .search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--muted-foreground); cursor: pointer; font-size: 16px; line-height: 1; }
+    .cat-scroll { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 
     /* Category Card */
     .cat-header {
       padding: 12px 16px; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .collapse-btn {
-      display: flex; align-items: center; gap: 8px; min-width: 0;
-      text-align: left; cursor: pointer;
-    }
+    .collapse-btn { display: flex; align-items: center; gap: 8px; min-width: 0; text-align: left; cursor: pointer; }
     .collapse-btn h2 {
       margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -264,10 +280,18 @@
       font-size: 12px; padding: 1px 8px; border-radius: 6px; flex-shrink: 0;
       border: 1px solid var(--border); color: var(--muted-foreground);
     }
-    .cat-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-    .pack-all-btn {
-      font-size: 12px; color: var(--muted-foreground); cursor: pointer; transition: color 140ms ease;
+    .charger-tag {
+      font-size: 12px; padding: 1px 6px; border-radius: 6px; flex-shrink: 0;
+      border: 1px solid var(--border); color: var(--muted-foreground);
+      background-color: var(--background);
     }
+    .charger-tag.warn {
+      color: var(--warning);
+      border-color: color-mix(in srgb, var(--warning) 35%, transparent);
+      background-color: color-mix(in srgb, var(--warning) 12%, transparent);
+    }
+    .cat-header-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .pack-all-btn { font-size: 12px; color: var(--muted-foreground); cursor: pointer; transition: color 140ms ease; }
     .pack-all-btn:hover { color: var(--primary); }
     .cat-count { font-size: 12px; font-weight: 500; color: var(--muted-foreground); font-variant-numeric: tabular-nums; }
 
@@ -280,16 +304,14 @@
     .item-row:last-child { border-bottom: none; }
     .item-row:hover { background-color: color-mix(in srgb, var(--foreground) 4%, transparent); }
     .item-row.skipped { opacity: 0.56; }
-    .item-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+    .item-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
     .check-circle {
       width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
       cursor: pointer; transition: all 140ms ease;
     }
     .check-circle:active { transform: scale(0.9); }
-    .check-circle.checked {
-      background-color: var(--success); border-color: var(--success); color: var(--background);
-    }
+    .check-circle.checked { background-color: var(--success); border-color: var(--success); color: var(--background); }
     .item-name {
       font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       cursor: text; user-select: none; color: var(--foreground); font-weight: 500;
@@ -314,33 +336,23 @@
     .status-pill:active { transform: scale(0.97); }
     .st-yes {
       background-color: color-mix(in srgb, var(--success) 15%, transparent);
-      color: var(--success);
-      border-color: color-mix(in srgb, var(--success) 32%, transparent);
+      color: var(--success); border-color: color-mix(in srgb, var(--success) 32%, transparent);
     }
     .st-notyet {
       background-color: color-mix(in srgb, var(--error) 14%, transparent);
-      color: var(--error);
-      border-color: color-mix(in srgb, var(--error) 30%, transparent);
+      color: var(--error); border-color: color-mix(in srgb, var(--error) 30%, transparent);
     }
     .st-dayof {
       background-color: color-mix(in srgb, var(--warning) 16%, transparent);
-      color: var(--warning);
-      border-color: color-mix(in srgb, var(--warning) 34%, transparent);
+      color: var(--warning); border-color: color-mix(in srgb, var(--warning) 34%, transparent);
     }
     .st-maybe {
       background-color: color-mix(in srgb, var(--chart-1) 15%, transparent);
-      color: var(--chart-1);
-      border-color: color-mix(in srgb, var(--chart-1) 32%, transparent);
+      color: var(--chart-1); border-color: color-mix(in srgb, var(--chart-1) 32%, transparent);
     }
     .st-dontneed {
       background-color: color-mix(in srgb, var(--muted-foreground) 12%, transparent);
-      color: var(--muted-foreground);
-      border-color: color-mix(in srgb, var(--border) 80%, transparent);
-    }
-    .st-unset {
-      background-color: transparent;
-      color: var(--muted-foreground);
-      border: 1px dashed var(--border);
+      color: var(--muted-foreground); border-color: color-mix(in srgb, var(--border) 80%, transparent);
     }
 
     .icon-del {
@@ -353,14 +365,8 @@
     .icon-del:hover { color: var(--error); }
 
     /* Quick Add */
-    .quick-add-form {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 14px; border-top: 1px solid var(--card-border);
-    }
-    .quick-add-input {
-      flex: 1; background: transparent; border: none; outline: none;
-      font-size: 12px; color: var(--foreground); padding: 2px 0;
-    }
+    .quick-add-form { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--card-border); }
+    .quick-add-input { flex: 1; background: transparent; border: none; outline: none; font-size: 12px; color: var(--foreground); padding: 2px 0; }
     .quick-add-input::placeholder { color: var(--placeholder); }
     .link-btn { font-size: 12px; font-weight: 600; color: var(--primary); cursor: pointer; padding: 2px 4px; }
     .link-btn:hover { text-decoration: underline; }
@@ -380,12 +386,13 @@
       padding: 6px 10px; border-radius: 10px;
       border: 1px solid var(--card-border); background-color: var(--background);
     }
-    .track-btn {
-      padding: 2px 8px; border-radius: 999px; font-size: 12px;
-      border: 1px solid var(--border); color: var(--muted-foreground);
-      cursor: pointer; transition: all 140ms ease; white-space: nowrap;
+    .outfit-piece.skipped { opacity: 0.56; }
+    .sync-tag {
+      font-size: 12px; color: var(--muted-foreground);
+      padding: 0 5px; border-radius: 5px;
+      background-color: color-mix(in srgb, var(--foreground) 6%, transparent);
+      flex-shrink: 0;
     }
-    .track-btn:hover { color: var(--primary); border-color: var(--primary); }
     .outfit-add-form { display: flex; align-items: center; gap: 6px; padding-top: 4px; }
     .outfit-add-input {
       flex: 1; background: transparent; border: none; border-bottom: 1px solid transparent;
@@ -393,30 +400,24 @@
     }
     .outfit-add-input:focus { border-bottom-color: var(--primary); }
     .outfit-add-input::placeholder { color: var(--placeholder); }
+    .day-title:focus { box-shadow: 0 0 0 2px var(--primary); }
 
     /* Electronics Table */
     .table-wrap { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
-    th {
-      padding: 10px 16px; font-size: 12px; font-weight: 500;
-      color: var(--muted-foreground); border-bottom: 1px solid var(--border);
-    }
+    th { padding: 10px 16px; font-size: 12px; font-weight: 500; color: var(--muted-foreground); border-bottom: 1px solid var(--border); }
     td { padding: 10px 16px; border-bottom: 1px solid var(--card-border); font-size: 13px; }
     tbody tr:last-child td { border-bottom: none; }
     tbody tr:hover { background-color: color-mix(in srgb, var(--foreground) 4%, transparent); }
+    tr.dimmed { opacity: 0.52; }
     .select-input, .text-input {
       padding: 6px 10px; border-radius: 10px; font-size: 12px;
       background-color: var(--background); border: 1px solid var(--border);
       color: var(--foreground); outline: none;
     }
     .select-input:focus, .text-input:focus { border-color: var(--primary); }
-    .elec-add-form {
-      padding: 12px 16px; border-top: 1px solid var(--border);
-      display: flex; flex-direction: column; gap: 8px;
-    }
-    @media (min-width: 640px) {
-      .elec-add-form { flex-direction: row; align-items: center; }
-    }
+    .elec-add-form { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+    @media (min-width: 640px) { .elec-add-form { flex-direction: row; align-items: center; } }
 
     /* Popover, Modal, Toast */
     .hidden { display: none !important; }
@@ -440,8 +441,8 @@
       background-color: rgba(0, 0, 0, 0.48); backdrop-filter: blur(2px);
     }
     .modal-box {
-      width: 100%; max-width: 440px; border-radius: 16px;
-      border: 1px solid var(--border); background-color: var(--card);
+      width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;
+      border-radius: 16px; border: 1px solid var(--border); background-color: var(--card);
       padding: 20px; display: flex; flex-direction: column; gap: 14px;
       box-shadow: 0 18px 40px -8px rgba(0, 0, 0, 0.28);
       animation: fadeIn 140ms ease-out;
@@ -485,7 +486,10 @@
 </head>
 <body>
   <div id="app" class="container">
-    <!-- Top Header -->
+    <!-- Multi-Trip Switcher Bar -->
+    <section aria-label="Upcoming Trips" class="trips-bar" id="tripsBar"></section>
+
+    <!-- Active Trip Header -->
     <header class="app-header">
       <div class="brand-row">
         <div class="brand-icon">
@@ -498,11 +502,12 @@
         </div>
         <div class="title-wrap">
           <div class="title-line">
-            <h1 id="tripTitle" class="trip-title" contenteditable="true" spellcheck="false" title="Click to rename trip"></h1>
-            <span id="tripSubtitle" class="trip-subtitle" contenteditable="true" spellcheck="false" title="Click to edit trip dates"></span>
+            <h1 id="tripTitle" class="trip-title"></h1>
+            <span id="tripSubtitle" class="trip-subtitle"></span>
+            <button id="btnEditTrip" type="button" class="trip-edit-link">Edit trip</button>
           </div>
           <p class="header-meta">
-            <span>Imported from Google Sheets</span>
+            <span id="tripMetaLeft"></span>
             <span aria-hidden="true">·</span>
             <span id="saveIndicator">Saved locally</span>
           </p>
@@ -517,13 +522,13 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Add Item
         </button>
-        <button id="btnNewTrip" type="button" class="btn btn-secondary">
+        <button id="btnResetTrip" type="button" class="btn btn-secondary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
-          New Trip Reset
+          Reset Trip
         </button>
         <button id="btnExport" type="button" class="btn btn-secondary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export
+          Backup / Export
         </button>
       </div>
     </header>
@@ -559,6 +564,9 @@
   <div id="modalBackdrop" class="modal-backdrop hidden">
     <div id="modalContent" class="modal-box"></div>
   </div>
+
+  <!-- Hidden File Input for JSON Import -->
+  <input id="importJsonInput" type="file" accept="application/json,.json" class="hidden" />
 
   <!-- Toast -->
   <div id="toast" class="toast hidden">
@@ -638,253 +646,495 @@
       }
     })();
 
-    const STORAGE_KEY = 'packing_tracker_app_v1';
+    const STORAGE_KEY_V4 = 'packing_tracker_app_v4';
 
     const STATUSES = [
       { value: 'Yes',            label: 'Packed',         short: 'Yes',        cls: 'st-yes',      dot: 'var(--success)',          order: 4 },
       { value: 'Not Yet',        label: 'Not Yet',        short: 'Not Yet',    cls: 'st-notyet',   dot: 'var(--error)',            order: 0 },
       { value: 'Packing Day Of', label: 'Packing Day Of', short: 'Day Of',     cls: 'st-dayof',    dot: 'var(--warning)',          order: 1 },
       { value: 'Maybe',          label: 'Maybe',          short: 'Maybe',      cls: 'st-maybe',    dot: 'var(--chart-1)',          order: 2 },
-      { value: "Don't Need",     label: "Don't Need",     short: "Don't Need", cls: 'st-dontneed', dot: 'var(--muted-foreground)', order: 5 },
-      { value: '',               label: 'Unset',          short: 'Set status', cls: 'st-unset',    dot: 'var(--border)',           order: 3 }
+      { value: "Don't Need",     label: "Don't Need",     short: "Don't Need", cls: 'st-dontneed', dot: 'var(--muted-foreground)', order: 5 }
     ];
 
-    const CHARGER_OPTIONS = ['USB-C', 'Android USB', 'USB', 'Lightning', 'Wireless', 'Proprietary', '???'];
+    const CHARGER_OPTIONS = ['', 'USB-C', 'Android USB', 'USB', 'Lightning', 'Wireless', 'Proprietary', '???'];
 
-    const INITIAL_DATA = {
-      tripTitle: 'Packing List',
-      tripSubtitle: 'Apr 16 – Apr 20',
-      baseCategories: ['Toiletries', 'Hair Toiletries', 'Medicine', 'Clothing', 'Accessories', 'Electronic'],
-      tripCategories: ['Toiletries', 'Clothing', 'Shoes', 'Accessories', 'Other'],
-      items: [
-        // Base List — Toiletries
-        { id: 'base-1', list: 'base', category: 'Toiletries', name: 'Face Lotion', status: 'Yes' },
-        { id: 'base-2', list: 'base', category: 'Toiletries', name: 'Face Wash', status: 'Yes' },
-        { id: 'base-3', list: 'base', category: 'Toiletries', name: 'Pimple Patches', status: 'Yes' },
-        { id: 'base-4', list: 'base', category: 'Toiletries', name: 'Toner', status: 'Yes' },
-        { id: 'base-5', list: 'base', category: 'Toiletries', name: 'Make up Remover', status: "Don't Need" },
-        { id: 'base-6', list: 'base', category: 'Toiletries', name: 'Make up Remover Wipes', status: 'Yes' },
-        { id: 'base-7', list: 'base', category: 'Toiletries', name: 'Makeup Towel', status: 'Yes' },
-        { id: 'base-8', list: 'base', category: 'Toiletries', name: 'Cotton Balls', status: 'Yes' },
-        { id: 'base-9', list: 'base', category: 'Toiletries', name: 'Q-tips', status: 'Yes' },
-        { id: 'base-10', list: 'base', category: 'Toiletries', name: 'Deoderant', status: 'Yes' },
-        { id: 'base-11', list: 'base', category: 'Toiletries', name: 'Body Lotion', status: 'Yes' },
-        { id: 'base-12', list: 'base', category: 'Toiletries', name: 'Perfume', status: 'Yes' },
-        { id: 'base-13', list: 'base', category: 'Toiletries', name: 'Body Mist', status: 'Yes' },
-        { id: 'base-14', list: 'base', category: 'Toiletries', name: 'Ear Plugs', status: 'Yes' },
-        { id: 'base-15', list: 'base', category: 'Toiletries', name: 'Sleep Mask', status: 'Yes' },
-        { id: 'base-16', list: 'base', category: 'Toiletries', name: 'Makeup Brushes', status: 'Yes' },
-        { id: 'base-17', list: 'base', category: 'Toiletries', name: 'Make Up', status: 'Yes' },
-        { id: 'base-18', list: 'base', category: 'Toiletries', name: 'Rubbing Alcohol', status: "Don't Need" },
-        { id: 'base-19', list: 'base', category: 'Toiletries', name: 'Tooth Brush', status: 'Yes' },
-        { id: 'base-20', list: 'base', category: 'Toiletries', name: 'Tooth Paste', status: 'Yes' },
-        { id: 'base-21', list: 'base', category: 'Toiletries', name: 'Floss', status: 'Yes' },
-        { id: 'base-22', list: 'base', category: 'Toiletries', name: 'Contacts', status: 'Yes' },
-        { id: 'base-23', list: 'base', category: 'Toiletries', name: "Paula's Choice Blue", status: 'Yes' },
-        { id: 'base-24', list: 'base', category: 'Toiletries', name: "Paula's Choice Grey", status: 'Yes' },
-        { id: 'base-25', list: 'base', category: 'Toiletries', name: 'Face Washing scrunchies', status: 'Yes' },
-        { id: 'base-26', list: 'base', category: 'Toiletries', name: 'Setting Spray', status: 'Yes' },
-        { id: 'base-27', list: 'base', category: 'Toiletries', name: 'Niacinamide', status: "Don't Need" },
-        { id: 'base-28', list: 'base', category: 'Toiletries', name: 'FOUNDATION', status: 'Yes' },
-        { id: 'base-29', list: 'base', category: 'Toiletries', name: 'Wrinkle Spray', status: 'Yes' },
-        { id: 'base-30', list: 'base', category: 'Toiletries', name: 'Scented Lotion', status: "Don't Need" },
-        { id: 'base-31', list: 'base', category: 'Toiletries', name: 'Body Wash', status: 'Yes' },
-        { id: 'base-32', list: 'base', category: 'Toiletries', name: 'Shaving Cream', status: "Don't Need" },
-        { id: 'base-33', list: 'base', category: 'Toiletries', name: 'Razor', status: "Don't Need" },
-        { id: 'base-34', list: 'base', category: 'Toiletries', name: "Kiehl's Acne Treatment", status: 'Yes' },
+    // Master Base List: [id, category, name, defaultAprilStatus, optionalCharger]
+    const BASE_ITEMS_SEED = [
+      // Toiletries
+      ['base-1', 'Toiletries', 'Face Lotion', 'Yes', ''],
+      ['base-2', 'Toiletries', 'Face Wash', 'Yes', ''],
+      ['base-3', 'Toiletries', 'Pimple Patches', 'Yes', ''],
+      ['base-4', 'Toiletries', 'Toner', 'Yes', ''],
+      ['base-5', 'Toiletries', 'Makeup Remover', "Don't Need", ''],
+      ['base-6', 'Toiletries', 'Makeup Remover Wipes', 'Yes', ''],
+      ['base-7', 'Toiletries', 'Makeup Towel', 'Yes', ''],
+      ['base-8', 'Toiletries', 'Cotton Balls', 'Yes', ''],
+      ['base-9', 'Toiletries', 'Q-tips', 'Yes', ''],
+      ['base-10', 'Toiletries', 'Deodorant', 'Yes', ''],
+      ['base-11', 'Toiletries', 'Body Lotion', 'Yes', ''],
+      ['base-12', 'Toiletries', 'Perfume', 'Yes', ''],
+      ['base-13', 'Toiletries', 'Body Mist', 'Yes', ''],
+      ['base-14', 'Toiletries', 'Ear Plugs', 'Yes', ''],
+      ['base-15', 'Toiletries', 'Sleep Mask', 'Yes', ''],
+      ['base-16', 'Toiletries', 'Makeup Brushes', 'Yes', ''],
+      ['base-17', 'Toiletries', 'Makeup', 'Yes', ''],
+      ['base-18', 'Toiletries', 'Rubbing Alcohol', "Don't Need", ''],
+      ['base-19', 'Toiletries', 'Toothbrush', 'Yes', ''],
+      ['base-20', 'Toiletries', 'Toothpaste', 'Yes', ''],
+      ['base-21', 'Toiletries', 'Floss', 'Yes', ''],
+      ['base-22', 'Toiletries', 'Contacts', 'Yes', ''],
+      ['base-23', 'Toiletries', "Paula's Choice Blue", 'Yes', ''],
+      ['base-24', 'Toiletries', "Paula's Choice Grey", 'Yes', ''],
+      ['base-25', 'Toiletries', 'Face Washing Scrunchies', 'Yes', ''],
+      ['base-26', 'Toiletries', 'Setting Spray', 'Yes', ''],
+      ['base-27', 'Toiletries', 'Niacinamide', "Don't Need", ''],
+      ['base-28', 'Toiletries', 'Foundation', 'Yes', ''],
+      ['base-29', 'Toiletries', 'Wrinkle Spray', 'Yes', ''],
+      ['base-30', 'Toiletries', 'Scented Lotion', "Don't Need", ''],
+      ['base-31', 'Toiletries', 'Body Wash', 'Yes', ''],
+      ['base-32', 'Toiletries', 'Shaving Cream', "Don't Need", ''],
+      ['base-33', 'Toiletries', 'Razor', "Don't Need", ''],
+      ['base-34', 'Toiletries', "Kiehl's Acne Treatment", 'Yes', ''],
+      ['base-34b', 'Toiletries', 'Poo-Pourri', 'Yes', ''],
+      ['base-34c', 'Toiletries', 'Portable Toiletry Bag', 'Yes', ''],
 
-        // Base List — Hair Toiletries
-        { id: 'base-35', list: 'base', category: 'Hair Toiletries', name: 'Head Scarf', status: 'Yes' },
-        { id: 'base-36', list: 'base', category: 'Hair Toiletries', name: 'Edge Control', status: "Don't Need" },
-        { id: 'base-37', list: 'base', category: 'Hair Toiletries', name: 'Sulfur 8', status: "Don't Need" },
-        { id: 'base-38', list: 'base', category: 'Hair Toiletries', name: 'Hair Gel', status: "Don't Need" },
-        { id: 'base-39', list: 'base', category: 'Hair Toiletries', name: 'Shampoo', status: "Don't Need" },
-        { id: 'base-40', list: 'base', category: 'Hair Toiletries', name: 'Conditioner', status: "Don't Need" },
-        { id: 'base-41', list: 'base', category: 'Hair Toiletries', name: 'Bonnet', status: 'Yes' },
-        { id: 'base-42', list: 'base', category: 'Hair Toiletries', name: 'Edge Brush', status: "Don't Need" },
-        { id: 'base-43', list: 'base', category: 'Hair Toiletries', name: 'Cecred Drops', status: 'Yes' },
-        { id: 'base-44', list: 'base', category: 'Hair Toiletries', name: 'Dermazen', status: 'Maybe' },
-        { id: 'base-45', list: 'base', category: 'Hair Toiletries', name: 'Edge Band', status: "Don't Need" },
+      // Hair Toiletries
+      ['base-35', 'Hair Toiletries', 'Head Scarf', 'Yes', ''],
+      ['base-36', 'Hair Toiletries', 'Edge Control', "Don't Need", ''],
+      ['base-37', 'Hair Toiletries', 'Sulfur 8', "Don't Need", ''],
+      ['base-38', 'Hair Toiletries', 'Hair Gel', "Don't Need", ''],
+      ['base-39', 'Hair Toiletries', 'Shampoo', "Don't Need", ''],
+      ['base-40', 'Hair Toiletries', 'Conditioner', "Don't Need", ''],
+      ['base-41', 'Hair Toiletries', 'Bonnet', 'Yes', ''],
+      ['base-42', 'Hair Toiletries', 'Edge Brush', "Don't Need", ''],
+      ['base-43', 'Hair Toiletries', 'Cecred Drops', 'Yes', ''],
+      ['base-44', 'Hair Toiletries', 'Dermazen', 'Maybe', ''],
+      ['base-45', 'Hair Toiletries', 'Edge Band', "Don't Need", ''],
+      ['base-45b', 'Hair Toiletries', 'Brush', 'Yes', ''],
+      ['base-45c', 'Hair Toiletries', 'Hard Brush', 'Yes', ''],
+      ['base-45d', 'Hair Toiletries', 'Bobby Pins', 'Yes', ''],
+      ['base-45e', 'Hair Toiletries', 'Rubber Bands (Mini & Regular)', 'Yes', ''],
+      ['base-45f', 'Hair Toiletries', 'Hard Wrap Things (Slick Back)', 'Yes', ''],
+      ['base-45g', 'Hair Toiletries', 'Scarf (Slick Back)', 'Yes', ''],
+      ['base-45h', 'Hair Toiletries', 'Got 2 B Spray', 'Yes', ''],
+      ['base-45i', 'Hair Toiletries', 'Slicking Gel', 'Yes', ''],
+      ['base-45j', 'Hair Toiletries', 'Spray Bottle', "Don't Need", ''],
+      ['base-45k', 'Hair Toiletries', 'Mousse', "Don't Need", ''],
+      ['base-45l', 'Hair Toiletries', 'Leave-In Conditioner', "Don't Need", ''],
+      ['base-45m', 'Hair Toiletries', 'Hot Comb', 'Maybe', ''],
+      ['base-45n', 'Hair Toiletries', 'Flat Iron', 'Maybe', ''],
+      ['base-45o', 'Hair Toiletries', 'Heat Protectant', 'Maybe', ''],
+      ['base-45p', 'Hair Toiletries', 'Backup Wig', 'Maybe', ''],
 
-        // Base List — Medicine
-        { id: 'base-46', list: 'base', category: 'Medicine', name: 'Allergy Nasal Spray', status: "Don't Need" },
-        { id: 'base-47', list: 'base', category: 'Medicine', name: 'Tylenol', status: 'Yes' },
-        { id: 'base-48', list: 'base', category: 'Medicine', name: 'Ibuprofen', status: 'Yes' },
-        { id: 'base-49', list: 'base', category: 'Medicine', name: 'Excedrin', status: 'Yes' },
-        { id: 'base-50', list: 'base', category: 'Medicine', name: 'Melatonin', status: 'Not Yet' },
-        { id: 'base-51', list: 'base', category: 'Medicine', name: 'Afrin', status: 'Yes' },
-        { id: 'base-52', list: 'base', category: 'Medicine', name: 'Magnesium Oxide', status: "Don't Need" },
-        { id: 'base-53', list: 'base', category: 'Medicine', name: 'Atrantil', status: 'Yes' },
-        { id: 'base-54', list: 'base', category: 'Medicine', name: 'Gummies', status: "Don't Need" },
+      // Medicine & Supplements
+      ['base-46', 'Medicine & Supplements', 'Allergy Nasal Spray', "Don't Need", ''],
+      ['base-47', 'Medicine & Supplements', 'Tylenol', 'Yes', ''],
+      ['base-48', 'Medicine & Supplements', 'Ibuprofen', 'Yes', ''],
+      ['base-49', 'Medicine & Supplements', 'Excedrin', 'Yes', ''],
+      ['base-50', 'Medicine & Supplements', 'Melatonin', 'Not Yet', ''],
+      ['base-51', 'Medicine & Supplements', 'Afrin', 'Yes', ''],
+      ['base-52', 'Medicine & Supplements', 'Magnesium Oxide', "Don't Need", ''],
+      ['base-53', 'Medicine & Supplements', 'Atrantil', 'Yes', ''],
+      ['base-54', 'Medicine & Supplements', 'Gummies', "Don't Need", ''],
+      ['base-54b', 'Medicine & Supplements', 'Berberine', "Don't Need", ''],
+      ['base-54c', 'Medicine & Supplements', 'Digestive Enzymes', 'Yes', ''],
+      ['base-54d', 'Medicine & Supplements', 'Gluten & Dairy Digestive', "Don't Need", ''],
+      ['base-54e', 'Medicine & Supplements', 'LMNT', 'Yes', ''],
+      ['base-54f', 'Medicine & Supplements', 'Energy Packets', 'Yes', ''],
 
-        // Base List — Clothing
-        { id: 'base-55', list: 'base', category: 'Clothing', name: 'Pajamas', status: 'Yes' },
-        { id: 'base-56', list: 'base', category: 'Clothing', name: 'Regular Underwear', status: 'Yes' },
-        { id: 'base-57', list: 'base', category: 'Clothing', name: 'Thongs', status: 'Yes' },
-        { id: 'base-58', list: 'base', category: 'Clothing', name: 'Regular Bras', status: 'Yes' },
-        { id: 'base-59', list: 'base', category: 'Clothing', name: 'Sports Bras', status: 'Yes' },
-        { id: 'base-60', list: 'base', category: 'Clothing', name: 'Low Socks', status: 'Yes' },
-        { id: 'base-61', list: 'base', category: 'Clothing', name: 'T-shirts', status: 'Yes' },
-        { id: 'base-62', list: 'base', category: 'Clothing', name: 'Sweatpants', status: 'Packing Day Of' },
-        { id: 'base-63', list: 'base', category: 'Clothing', name: 'Sweatshirt', status: 'Packing Day Of' },
-        { id: 'base-64', list: 'base', category: 'Clothing', name: 'Long sleeve shirt', status: "Don't Need" },
-        { id: 'base-65', list: 'base', category: 'Clothing', name: 'Crew Socks', status: 'Yes' },
+      // Clothing (everyday basics only — trip outfits live in the dedicated Outfits tab!)
+      ['base-55', 'Clothing', 'Pajamas', 'Yes', ''],
+      ['base-56', 'Clothing', 'Regular Underwear', 'Yes', ''],
+      ['base-57', 'Clothing', 'Thongs', 'Yes', ''],
+      ['base-58', 'Clothing', 'Regular Bras', 'Yes', ''],
+      ['base-59', 'Clothing', 'Sports Bras', 'Yes', ''],
+      ['base-60', 'Clothing', 'Low Socks', 'Yes', ''],
+      ['base-61', 'Clothing', 'T-shirts', 'Yes', ''],
+      ['base-62', 'Clothing', 'Sweatpants', 'Packing Day Of', ''],
+      ['base-63', 'Clothing', 'Sweatshirt', 'Packing Day Of', ''],
+      ['base-64', 'Clothing', 'Long Sleeve Shirt', "Don't Need", ''],
+      ['base-65', 'Clothing', 'Crew Socks', 'Yes', ''],
 
-        // Base List — Accessories
-        { id: 'base-66', list: 'base', category: 'Accessories', name: 'Jewelry', status: 'Not Yet' },
-        { id: 'base-67', list: 'base', category: 'Accessories', name: 'Gum', status: 'Yes' },
-        { id: 'base-68', list: 'base', category: 'Accessories', name: 'Plastic Bags', status: 'Yes' },
-        { id: 'base-69', list: 'base', category: 'Accessories', name: 'Large Pony Tail Holders', status: "Don't Need" },
-        { id: 'base-70', list: 'base', category: 'Accessories', name: 'Regular Pony Tail Holders', status: 'Yes' },
-        { id: 'base-71', list: 'base', category: 'Accessories', name: 'Water Bottle', status: 'Packing Day Of' },
-        { id: 'base-72', list: 'base', category: 'Accessories', name: 'Blue Light Glasses', status: "Don't Need" },
-        { id: 'base-73', list: 'base', category: 'Accessories', name: 'Regular Glasses', status: 'Yes' },
-        { id: 'base-74', list: 'base', category: 'Accessories', name: 'Totebag', status: 'Maybe' },
-        { id: 'base-75', list: 'base', category: 'Accessories', name: 'Mini rubber bands', status: 'Yes' },
-        { id: 'base-76', list: 'base', category: 'Accessories', name: 'Badge', status: "Don't Need" },
-        { id: 'base-77', list: 'base', category: 'Accessories', name: 'Headbands', status: '' },
-        { id: 'base-78', list: 'base', category: 'Accessories', name: 'Baseball Cap', status: '' },
+      // Accessories
+      ['base-66', 'Accessories', 'Jewelry', 'Not Yet', ''],
+      ['base-67', 'Accessories', 'Gum', 'Yes', ''],
+      ['base-68', 'Accessories', 'Plastic Bags', 'Yes', ''],
+      ['base-69', 'Accessories', 'Large Ponytail Holders', "Don't Need", ''],
+      ['base-70', 'Accessories', 'Regular Ponytail Holders', 'Yes', ''],
+      ['base-71', 'Accessories', 'Water Bottle', 'Packing Day Of', ''],
+      ['base-72', 'Accessories', 'Blue Light Glasses', "Don't Need", ''],
+      ['base-73', 'Accessories', 'Regular Glasses', 'Yes', ''],
+      ['base-74', 'Accessories', 'Tote Bag', 'Maybe', ''],
+      ['base-76', 'Accessories', 'Badge', 'Yes', ''],
+      ['base-77', 'Accessories', 'Headbands', 'Not Yet', ''],
+      ['base-78', 'Accessories', 'Baseball Cap', 'Not Yet', ''],
 
-        // Base List — Electronic
-        { id: 'base-79', list: 'base', category: 'Electronic', name: 'Phone Charger', status: 'Yes' },
-        { id: 'base-80', list: 'base', category: 'Electronic', name: 'Watch Charger', status: 'Yes' },
-        { id: 'base-81', list: 'base', category: 'Electronic', name: 'Gold Watch Band', status: 'Yes' },
-        { id: 'base-82', list: 'base', category: 'Electronic', name: 'Portable Charger', status: 'Yes' },
-        { id: 'base-83', list: 'base', category: 'Electronic', name: 'Android Charger', status: 'Yes' },
-        { id: 'base-84', list: 'base', category: 'Electronic', name: 'Whoop Charger', status: 'Yes' },
-        { id: 'base-85', list: 'base', category: 'Electronic', name: 'Makeup Mirror', status: 'Yes' },
-        { id: 'base-86', list: 'base', category: 'Electronic', name: 'Charging Block', status: 'Yes' },
-        { id: 'base-87', list: 'base', category: 'Electronic', name: 'Laptop', status: 'Packing Day Of' },
-        { id: 'base-88', list: 'base', category: 'Electronic', name: 'Amazon Light', status: 'Yes' },
-        { id: 'base-89', list: 'base', category: 'Electronic', name: 'Digital Camera', status: "Don't Need" },
-        { id: 'base-90', list: 'base', category: 'Electronic', name: 'Mini Fan', status: 'Yes' },
-        { id: 'base-91', list: 'base', category: 'Electronic', name: 'iPad', status: 'Yes' },
-        { id: 'base-92', list: 'base', category: 'Electronic', name: 'Long USB C Charger (for mirror)', status: 'Yes' },
-        { id: 'base-93', list: 'base', category: 'Electronic', name: 'Airpods', status: 'Yes' },
-        { id: 'base-94', list: 'base', category: 'Electronic', name: 'USB-C Converters', status: 'Yes' },
-        { id: 'base-95', list: 'base', category: 'Electronic', name: 'Laptop charger', status: 'Yes' },
-        { id: 'base-96', list: 'base', category: 'Electronic', name: 'White Noise Machine', status: 'Yes' },
-        { id: 'base-97', list: 'base', category: 'Electronic', name: 'Door Stop Alarm', status: "Don't Need" },
-        { id: 'base-98', list: 'base', category: 'Electronic', name: 'Electric Shaver', status: "Don't Need" },
-        { id: 'base-99', list: 'base', category: 'Electronic', name: 'Laptop Privacy Screen', status: "Don't Need" },
-        { id: 'base-100', list: 'base', category: 'Electronic', name: 'Monitor', status: "Don't Need" },
-        { id: 'base-101', list: 'base', category: 'Electronic', name: 'Monitor Cord', status: "Don't Need" },
-        { id: 'base-102', list: 'base', category: 'Electronic', name: 'Pixel', status: "Don't Need" },
+      // Electronic
+      ['base-79', 'Electronic', 'Phone Charger', 'Yes', ''],
+      ['base-80', 'Electronic', 'Watch Charger', 'Yes', 'USB'],
+      ['base-81', 'Electronic', 'Gold Watch Band', 'Yes', ''],
+      ['base-82', 'Electronic', 'Portable Charger', 'Yes', 'Android USB'],
+      ['base-83', 'Electronic', 'Android Charger', 'Yes', ''],
+      ['base-84', 'Electronic', 'Whoop Charger', 'Yes', ''],
+      ['base-85', 'Electronic', 'Makeup Mirror', 'Yes', 'Android USB'],
+      ['base-85b', 'Electronic', 'Mini Makeup Mirror', 'Maybe', '???'],
+      ['base-86', 'Electronic', 'Charging Block', 'Yes', ''],
+      ['base-87', 'Electronic', 'Laptop', 'Packing Day Of', 'USB-C'],
+      ['base-88', 'Electronic', 'Amazon Light (Selfie Light)', 'Yes', '???'],
+      ['base-89', 'Electronic', 'Digital Camera', "Don't Need", 'Android USB'],
+      ['base-90', 'Electronic', 'Mini Fan', 'Yes', 'USB-C'],
+      ['base-91', 'Electronic', 'iPad', 'Yes', 'USB-C'],
+      ['base-92', 'Electronic', 'Long USB-C Charger (for mirror)', 'Yes', ''],
+      ['base-93', 'Electronic', 'AirPods', 'Yes', ''],
+      ['base-94', 'Electronic', 'USB-C Converters', 'Yes', ''],
+      ['base-95', 'Electronic', 'Laptop Charger', 'Yes', ''],
+      ['base-96', 'Electronic', 'White Noise Machine', 'Yes', ''],
+      ['base-97', 'Electronic', 'Door Stop Alarm', "Don't Need", ''],
+      ['base-98', 'Electronic', 'Electric Shaver', "Don't Need", ''],
+      ['base-99', 'Electronic', 'Laptop Privacy Screen', "Don't Need", ''],
+      ['base-100', 'Electronic', 'Monitor', "Don't Need", ''],
+      ['base-101', 'Electronic', 'Monitor Cord', "Don't Need", ''],
+      ['base-102', 'Electronic', 'Pixel', "Don't Need", '']
+    ];
 
-        // Trip Specific — Toiletries
-        { id: 'trip-1', list: 'trip', category: 'Toiletries', name: 'Energy Packets', status: 'Yes' },
-        { id: 'trip-2', list: 'trip', category: 'Toiletries', name: 'Body Oil', status: 'Yes' },
-        { id: 'trip-3', list: 'trip', category: 'Toiletries', name: 'Body Glitter', status: 'Yes' },
-        { id: 'trip-4', list: 'trip', category: 'Toiletries', name: 'Berberine', status: "Don't Need" },
-        { id: 'trip-5', list: 'trip', category: 'Toiletries', name: 'LMNT', status: 'Yes' },
-        { id: 'trip-6', list: 'trip', category: 'Toiletries', name: 'Digestive Enzymes', status: 'Yes' },
-        { id: 'trip-7', list: 'trip', category: 'Toiletries', name: 'Atrantil', status: 'Yes' },
-        { id: 'trip-8', list: 'trip', category: 'Toiletries', name: 'Gluten & Dairy Digestive', status: "Don't Need" },
-        { id: 'trip-9', list: 'trip', category: 'Toiletries', name: 'Body wipes', status: 'Maybe' },
-        { id: 'trip-10', list: 'trip', category: 'Toiletries', name: 'Mini Spray Deoderant', status: 'Yes' },
-        { id: 'trip-11', list: 'trip', category: 'Toiletries', name: 'Portable Toiletry Bag', status: 'Yes' },
-        { id: 'trip-12', list: 'trip', category: 'Toiletries', name: 'Spray bottle', status: "Don't Need" },
-        { id: 'trip-13', list: 'trip', category: 'Toiletries', name: 'Mousse', status: "Don't Need" },
-        { id: 'trip-14', list: 'trip', category: 'Toiletries', name: 'Leave in conditioner', status: "Don't Need" },
-        { id: 'trip-15', list: 'trip', category: 'Toiletries', name: 'Poopuri', status: 'Yes' },
-        { id: 'trip-16', list: 'trip', category: 'Toiletries', name: 'brush', status: 'Yes' },
-        { id: 'trip-17', list: 'trip', category: 'Toiletries', name: 'bobby pins', status: 'Yes' },
-        { id: 'trip-18', list: 'trip', category: 'Toiletries', name: 'rubber bands', status: 'Yes' },
-        { id: 'trip-19', list: 'trip', category: 'Toiletries', name: 'Hard brush', status: 'Yes' },
-        { id: 'trip-20', list: 'trip', category: 'Toiletries', name: 'Hard wrap things for slick back', status: 'Yes' },
-        { id: 'trip-21', list: 'trip', category: 'Toiletries', name: 'Scarf for slick back', status: 'Yes' },
-        { id: 'trip-22', list: 'trip', category: 'Toiletries', name: 'Got 2 b spray', status: 'Yes' },
-        { id: 'trip-23', list: 'trip', category: 'Toiletries', name: 'Slicking Gel', status: 'Yes' },
-        { id: 'trip-24', list: 'trip', category: 'Toiletries', name: 'Hot Comb', status: 'Maybe' },
-        { id: 'trip-25', list: 'trip', category: 'Toiletries', name: 'Flat Iron', status: 'Maybe' },
-        { id: 'trip-26', list: 'trip', category: 'Toiletries', name: 'Heat Protectant', status: 'Maybe' },
-        { id: 'trip-27', list: 'trip', category: 'Toiletries', name: 'Backup Wig', status: 'Maybe' },
+    // Trip Specific (NO Clothing category — all trip clothing lives in each trip's custom Outfits tab!)
+    const APRIL_TRIP_ITEMS_SEED = [
+      // Toiletries
+      ['trip-2', 'Toiletries', 'Body Oil', 'Yes'],
+      ['trip-3', 'Toiletries', 'Body Glitter', 'Yes'],
+      ['trip-9', 'Toiletries', 'Body Wipes', 'Maybe'],
+      ['trip-10', 'Toiletries', 'Mini Spray Deodorant (Purse)', 'Yes'],
+      // Shoes
+      ['trip-36', 'Shoes', 'Brunch Heels', 'Not Yet'],
+      ['trip-37', 'Shoes', 'Platform Sandals', 'Yes'],
+      ['trip-38', 'Shoes', 'Dunks', 'Yes'],
+      ['trip-39', 'Shoes', 'Night Heels / Boots', 'Not Yet'],
+      ['trip-40', 'Shoes', 'Slides', 'Not Yet'],
+      // Accessories
+      ['trip-41', 'Accessories', 'Thick Black Belt', 'Yes'],
+      ['trip-42', 'Accessories', 'Fashion Scarf', 'Not Yet'],
+      ['trip-43', 'Accessories', 'Brown Purse', 'Yes'],
+      ['trip-44', 'Accessories', 'Black Purse', 'Yes'],
+      ['trip-45', 'Accessories', 'Brown Sunglasses', 'Yes'],
+      ['trip-46', 'Accessories', 'Black Sunglasses', 'Yes'],
+      // Other
+      ['trip-47', 'Other', 'Airport Snacks', 'Not Yet'],
+      ['trip-49', 'Other', 'Phone Privacy Screen', 'Maybe'],
+      ['trip-50', 'Other', 'Heating Pad', 'Yes']
+    ];
 
-        // Trip Specific — Clothing
-        { id: 'trip-28', list: 'trip', category: 'Clothing', name: 'Brunch Dress', status: 'Not Yet' },
-        { id: 'trip-29', list: 'trip', category: 'Clothing', name: 'Church Dress', status: 'Yes' },
-        { id: 'trip-30', list: 'trip', category: 'Clothing', name: 'Work Outfit', status: 'Not Yet' },
-        { id: 'trip-31', list: 'trip', category: 'Clothing', name: 'Night outfit 1', status: 'Not Yet' },
-        { id: 'trip-32', list: 'trip', category: 'Clothing', name: 'Night outfit 2', status: 'Not Yet' },
-        { id: 'trip-33', list: 'trip', category: 'Clothing', name: 'Athletic Dress', status: 'Yes' },
-        { id: 'trip-34', list: 'trip', category: 'Clothing', name: 'Office Jacket', status: 'Not Yet' },
-        { id: 'trip-35', list: 'trip', category: 'Clothing', name: 'Brunch/Church Jacket', status: 'Not Yet' },
+    function makePiece(name, status = 'Not Yet') {
+      return {
+        id: `op-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name,
+        status
+      };
+    }
 
-        // Trip Specific — Shoes
-        { id: 'trip-36', list: 'trip', category: 'Shoes', name: 'Brunch Heels', status: 'Not Yet' },
-        { id: 'trip-37', list: 'trip', category: 'Shoes', name: 'Platform sandals', status: 'Yes' },
-        { id: 'trip-38', list: 'trip', category: 'Shoes', name: 'Dunks', status: 'Yes' },
-        { id: 'trip-39', list: 'trip', category: 'Shoes', name: 'Night heels/boots', status: 'Not Yet' },
-        { id: 'trip-40', list: 'trip', category: 'Shoes', name: 'Slides', status: 'Not Yet' },
+    function buildInitialStore() {
+      const baseStatuses = {};
+      const baseTemplate = BASE_ITEMS_SEED.map(([id, category, name, status, charger]) => {
+        baseStatuses[id] = status;
+        return { id, category, name, charger: charger || '' };
+      });
+      const tripItems = APRIL_TRIP_ITEMS_SEED.map(([id, category, name, status]) => ({ id, category, name, status }));
 
-        // Trip Specific — Accessories
-        { id: 'trip-41', list: 'trip', category: 'Accessories', name: 'Thick black belt', status: 'Yes' },
-        { id: 'trip-42', list: 'trip', category: 'Accessories', name: 'Fashion Scarf', status: 'Not Yet' },
-        { id: 'trip-43', list: 'trip', category: 'Accessories', name: 'Brown purse', status: 'Yes' },
-        { id: 'trip-44', list: 'trip', category: 'Accessories', name: 'Black Purse', status: 'Yes' },
-        { id: 'trip-45', list: 'trip', category: 'Accessories', name: 'Brown sunglasses', status: 'Yes' },
-        { id: 'trip-46', list: 'trip', category: 'Accessories', name: 'black sunglesses', status: 'Yes' },
+      return {
+        version: 4,
+        dismissedMirrorNote: false,
+        baseCategories: ['Toiletries', 'Hair Toiletries', 'Medicine & Supplements', 'Clothing', 'Accessories', 'Electronic'],
+        tripCategories: ['Toiletries', 'Shoes', 'Accessories', 'Other'],
+        baseTemplate,
+        activeTripId: 'trip-april',
+        trips: [
+          {
+            id: 'trip-april',
+            name: 'April Trip',
+            destination: '',
+            startDate: '2026-04-16',
+            endDate: '2026-04-20',
+            baseStatuses,
+            tripItems,
+            // Completely custom per-trip Outfits with built-in packing statuses
+            outfits: [
+              {
+                id: 'day-1',
+                type: 'day',
+                label: 'Thursday, April 16th',
+                daytime: [
+                  { id: 'op-1', name: 'Alo Sweat Suit', status: 'Not Yet' },
+                  { id: 'op-2', name: 'Crop Top', status: 'Not Yet' }
+                ],
+                nighttime: [
+                  { id: 'op-3', name: 'Pajamas', status: 'Yes' }
+                ]
+              },
+              {
+                id: 'day-2',
+                type: 'day',
+                label: 'Friday, April 17th',
+                daytime: [
+                  { id: 'op-4', name: 'Jeans', status: 'Not Yet' },
+                  { id: 'op-5', name: 'Body Suit', status: 'Not Yet' },
+                  { id: 'op-6', name: 'Dunks', status: 'Yes' },
+                  { id: 'op-7', name: 'Light Jacket', status: 'Not Yet' }
+                ],
+                nighttime: []
+              },
+              {
+                id: 'day-3',
+                type: 'day',
+                label: 'Saturday, April 18th',
+                daytime: [
+                  { id: 'op-8', name: 'Yellow Dress (Brunch)', status: 'Not Yet' },
+                  { id: 'op-9', name: 'Brunch Heels', status: 'Not Yet' },
+                  { id: 'op-10', name: 'Button-Up (as Jacket)', status: 'Not Yet' }
+                ],
+                nighttime: []
+              },
+              {
+                id: 'day-4',
+                type: 'day',
+                label: 'Sunday, April 19th',
+                daytime: [
+                  { id: 'op-11', name: 'Black Dress (Church)', status: 'Yes' },
+                  { id: 'op-12', name: 'Thick Black Belt', status: 'Yes' },
+                  { id: 'op-13', name: 'Platform Sandals', status: 'Yes' },
+                  { id: 'op-14', name: 'Cardigan', status: 'Not Yet' }
+                ],
+                nighttime: [
+                  { id: 'op-15', name: 'Night Outfit 1 (Casual Party)', status: 'Not Yet' }
+                ]
+              },
+              {
+                id: 'day-5',
+                type: 'day',
+                label: 'Monday, April 20th',
+                daytime: [
+                  { id: 'op-16', name: 'Alo Sweat Suit', status: 'Not Yet' },
+                  { id: 'op-17', name: 'Biker Shorts', status: 'Not Yet' }
+                ],
+                nighttime: []
+              },
+              {
+                id: 'sec-extra',
+                type: 'section',
+                label: 'Extra & Event Outfits',
+                items: [
+                  { id: 'op-18', name: 'Work Outfit', status: 'Not Yet' },
+                  { id: 'op-19', name: 'Night Outfit 2', status: 'Not Yet' },
+                  { id: 'op-20', name: 'Athletic Dress', status: 'Yes' },
+                  { id: 'op-21', name: 'Office Jacket', status: 'Not Yet' },
+                  { id: 'op-22', name: 'Brunch / Church Jacket', status: 'Not Yet' }
+                ]
+              }
+            ]
+          }
+        ]
+      };
+    }
 
-        // Trip Specific — Other
-        { id: 'trip-47', list: 'trip', category: 'Other', name: 'Airport Snacks', status: 'Not Yet' },
-        { id: 'trip-48', list: 'trip', category: 'Other', name: 'Badge', status: 'Yes' },
-        { id: 'trip-49', list: 'trip', category: 'Other', name: 'Phone Privacy Screen', status: 'Maybe' },
-        { id: 'trip-50', list: 'trip', category: 'Other', name: 'Heating pad', status: 'Yes' }
-      ],
-      outfits: [
-        { id: 'day-1', label: 'Thursday, April 16th', daytime: ['Alo Sweat Suit', 'Crop top'], nighttime: ['Pajams'] },
-        { id: 'day-2', label: 'Friday, April 17th', daytime: ['Jeans', 'Body Suit', 'Dunks', 'Light Jacket'], nighttime: [] },
-        { id: 'day-3', label: 'Saturday, April 18th', daytime: ['Yellow Dress', 'Heels', 'Button up as Jacket'], nighttime: [] },
-        { id: 'day-4', label: 'Sunday, April 19th', daytime: ['Black Dress', 'Thick Black Belt', 'Platform Sandals', 'Cardigan'], nighttime: ['Casual Party Outfit'] },
-        { id: 'day-5', label: 'Monday, April 20th', daytime: ['Alo Sweat Suit', 'Biker Shorts'], nighttime: [] }
-      ],
-      electronics: [
-        { id: 'elec-1', device: 'iPad', charger: 'USB-C' },
-        { id: 'elec-2', device: 'Mini Fan', charger: 'USB-C' },
-        { id: 'elec-3', device: 'Selfie Light', charger: '???' },
-        { id: 'elec-4', device: 'Watch Charger', charger: 'USB' },
-        { id: 'elec-5', device: 'Camera', charger: 'Android USB' },
-        { id: 'elec-6', device: 'Makeup Mirror', charger: 'Android USB' },
-        { id: 'elec-7', device: 'Mini Makeup Mirror', charger: '???' },
-        { id: 'elec-8', device: 'Portable Charger', charger: 'Android USB' }
-      ]
-    };
+    function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-    let data = loadData();
+    function loadStore() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_V4);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.trips) && parsed.trips.length > 0 && Array.isArray(parsed.baseTemplate)) {
+            return parsed;
+          }
+        }
+      } catch (e) {}
+      return buildInitialStore();
+    }
+
+    let store = loadStore();
     let ui = {
       activeTab: 'checklist',
       listScope: 'all',
       statusFilter: 'all',
+      outfitStatusFilter: 'all',
       categoryFilter: 'all',
       search: '',
       hideDontNeed: false,
       sortByStatus: true,
       collapsedGroups: {},
-      openPopoverItemId: null,
+      openPopoverTarget: null, // { kind: 'item'|'outfit', id: string }
       toastTimer: null
     };
 
-    function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
-
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && Array.isArray(parsed.items)) return parsed;
-        }
-      } catch (e) {}
-      return clone(INITIAL_DATA);
+    function getActiveTrip() {
+      let trip = store.trips.find(t => t.id === store.activeTripId);
+      if (!trip) { trip = store.trips[0]; store.activeTripId = trip.id; }
+      return trip;
     }
 
-    function saveData(withIndicator = true) {
-      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
+    function normalizeText(s) {
+      return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    }
+
+    function getTripChecklistItems(trip = getActiveTrip()) {
+      const base = store.baseTemplate.map(b => ({
+        id: b.id,
+        list: 'base',
+        category: b.category,
+        name: b.name,
+        charger: b.charger || '',
+        status: Object.prototype.hasOwnProperty.call(trip.baseStatuses, b.id) ? trip.baseStatuses[b.id] : 'Not Yet'
+      }));
+      const specific = trip.tripItems.map(t => ({
+        id: t.id,
+        list: 'trip',
+        category: t.category,
+        name: t.name,
+        charger: '',
+        status: t.status
+      }));
+      return [...base, ...specific];
+    }
+
+    // Iterate every outfit piece across days & custom sections
+    function getAllOutfitPieces(trip = getActiveTrip()) {
+      const list = [];
+      (trip.outfits || []).forEach(card => {
+        if (card.type === 'section') {
+          (card.items || []).forEach(p => list.push({ card, slot: 'items', piece: p }));
+        } else {
+          (card.daytime || []).forEach(p => list.push({ card, slot: 'daytime', piece: p }));
+          (card.nighttime || []).forEach(p => list.push({ card, slot: 'nighttime', piece: p }));
+        }
+      });
+      return list;
+    }
+
+    // Check if an outfit piece matches an item in Base List or Trip Specific (e.g. Dunks, Pajamas, Thick Black Belt)
+    function findLinkedChecklistItem(pieceName, checklistItems) {
+      const norm = normalizeText(pieceName);
+      if (!norm) return null;
+      return checklistItems.find(i => normalizeText(i.name) === norm) || null;
+    }
+
+    // Get effective status of an outfit piece (synced if linked to checklist)
+    function getOutfitPieceStatus(piece, checklistItems) {
+      const linked = findLinkedChecklistItem(piece.name, checklistItems);
+      return linked ? linked.status : (piece.status || 'Not Yet');
+    }
+
+    // Update status of an outfit piece — syncs across repeated days AND any linked checklist item!
+    function setOutfitPieceStatus(pieceId, newStatus, trip = getActiveTrip()) {
+      const entries = getAllOutfitPieces(trip);
+      const target = entries.find(e => e.piece.id === pieceId);
+      if (!target) return;
+      const targetNorm = normalizeText(target.piece.name);
+
+      // Update all outfit pieces with same normalized name (e.g. Alo Sweat Suit on Thu & Mon)
+      entries.forEach(e => {
+        if (normalizeText(e.piece.name) === targetNorm) {
+          e.piece.status = newStatus;
+        }
+      });
+
+      // Also sync if linked to Base List or Trip Specific
+      const checklistItems = getTripChecklistItems(trip);
+      const linked = findLinkedChecklistItem(target.piece.name, checklistItems);
+      if (linked) {
+        setItemStatus(linked.id, newStatus, trip);
+      }
+    }
+
+    // Unique outfit pieces for Outfits readiness stats (deduplicates repeated pieces like Alo Sweat Suit)
+    function getUniqueOutfitEntries(trip = getActiveTrip()) {
+      const checklistItems = getTripChecklistItems(trip);
+      const seen = new Set();
+      const unique = [];
+      getAllOutfitPieces(trip).forEach(e => {
+        const key = normalizeText(e.piece.name);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        const linked = findLinkedChecklistItem(e.piece.name, checklistItems);
+        unique.push({
+          name: e.piece.name,
+          status: linked ? linked.status : (e.piece.status || 'Not Yet'),
+          linked
+        });
+      });
+      return unique;
+    }
+
+    // Full trip stats combining Checklist + unique non-linked Outfits clothing pieces
+    function computeFullTripStats(trip = getActiveTrip()) {
+      const checklistItems = getTripChecklistItems(trip);
+      const customOutfitOnly = getUniqueOutfitEntries(trip)
+        .filter(u => !u.linked)
+        .map(u => ({ status: u.status }));
+      return computeStats([...checklistItems, ...customOutfitOnly]);
+    }
+
+    function getTrackedDevices(trip = getActiveTrip()) {
+      return getTripChecklistItems(trip).filter(i => i.list === 'base' && i.category === 'Electronic' && i.charger);
+    }
+
+    function setItemStatus(itemId, newStatus, trip = getActiveTrip()) {
+      let itemName = '';
+      const baseItem = store.baseTemplate.find(b => b.id === itemId);
+      if (baseItem) {
+        trip.baseStatuses[itemId] = newStatus;
+        itemName = baseItem.name;
+      } else {
+        const t = trip.tripItems.find(x => x.id === itemId);
+        if (t) { t.status = newStatus; itemName = t.name; }
+      }
+      // Mirror status into any matching outfit pieces
+      if (itemName) {
+        const norm = normalizeText(itemName);
+        getAllOutfitPieces(trip).forEach(e => {
+          if (normalizeText(e.piece.name) === norm) e.piece.status = newStatus;
+        });
+      }
+    }
+
+    function setItemCharger(itemId, charger) {
+      const b = store.baseTemplate.find(x => x.id === itemId);
+      if (b) b.charger = charger;
+    }
+
+    function renameItem(itemId, newName, trip = getActiveTrip()) {
+      const b = store.baseTemplate.find(x => x.id === itemId);
+      if (b) { b.name = newName; return; }
+      const t = trip.tripItems.find(x => x.id === itemId);
+      if (t) t.name = newName;
+    }
+
+    function deleteItem(itemId, trip = getActiveTrip()) {
+      const bIdx = store.baseTemplate.findIndex(x => x.id === itemId);
+      if (bIdx !== -1) {
+        store.baseTemplate.splice(bIdx, 1);
+        store.trips.forEach(tr => { delete tr.baseStatuses[itemId]; });
+        return;
+      }
+      trip.tripItems = trip.tripItems.filter(x => x.id !== itemId);
+    }
+
+    function addItemToList(list, category, name, status = 'Not Yet', charger = '', trip = getActiveTrip()) {
+      const id = `${list}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      if (list === 'base') {
+        store.baseTemplate.push({ id, category, name, charger: charger || '' });
+        store.trips.forEach(tr => { tr.baseStatuses[id] = tr.id === trip.id ? status : 'Not Yet'; });
+      } else {
+        trip.tripItems.push({ id, category, name, status });
+      }
+      return id;
+    }
+
+    function saveStore(withIndicator = true) {
+      try { localStorage.setItem(STORAGE_KEY_V4, JSON.stringify(store)); } catch (e) {}
       if (withIndicator) {
         const el = document.getElementById('saveIndicator');
         if (el) {
           el.textContent = 'Saved just now';
-          clearTimeout(saveData._t);
-          saveData._t = setTimeout(() => { el.textContent = 'Saved locally'; }, 1800);
+          clearTimeout(saveStore._t);
+          saveStore._t = setTimeout(() => { el.textContent = 'Saved locally'; }, 1800);
         }
       }
     }
@@ -896,7 +1146,7 @@
     }
 
     function getStatusMeta(val) {
-      return STATUSES.find(s => s.value === val) || STATUSES[STATUSES.length - 1];
+      return STATUSES.find(s => s.value === val) || STATUSES[1];
     }
 
     function showToast(message, undoFn = null) {
@@ -916,63 +1166,141 @@
       ui.toastTimer = setTimeout(() => toast.classList.add('hidden'), 4500);
     }
 
-    function normalizeText(s) {
-      return String(s || '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+    function parseIsoLocal(iso) {
+      if (!iso) return null;
+      const parts = iso.split('-').map(Number);
+      if (parts.length !== 3 || parts.some(isNaN)) return null;
+      return new Date(parts[0], parts[1] - 1, parts[2]);
     }
 
-    function findMatchingPackingItem(pieceName) {
-      const norm = normalizeText(pieceName);
-      if (!norm) return null;
-      const aliases = { 'pajams': 'pajamas', 'heels': 'brunch heels', 'camera': 'digital camera', 'selfie light': 'amazon light' };
-      const target = aliases[norm] || norm;
-      let exact = data.items.find(i => normalizeText(i.name) === target);
-      if (exact) return exact;
-      return data.items.find(i => {
-        const n = normalizeText(i.name);
-        return n === norm || (norm.length >= 4 && (n.includes(target) || target.includes(n)));
-      }) || null;
+    function formatDateRange(startIso, endIso) {
+      const s = parseIsoLocal(startIso);
+      const e = parseIsoLocal(endIso);
+      if (!s && !e) return 'Dates TBD';
+      const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      if (s && !e) return fmt(s);
+      if (!s && e) return fmt(e);
+      if (s.getTime() === e.getTime()) return fmt(s);
+      if (s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear()) {
+        return `${s.toLocaleDateString('en-US', { month: 'short' })} ${s.getDate()} – ${e.getDate()}`;
+      }
+      return `${fmt(s)} – ${fmt(e)}`;
     }
 
-    function findMatchingChargersForType(chargerType) {
+    function ordinal(n) {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = n % 100;
+      return n + (s[(v - 20) % 10] || s[v] || s[0]);
+    }
+
+    function generateOutfitDaysFromDates(startIso, endIso) {
+      const s = parseIsoLocal(startIso);
+      const e = parseIsoLocal(endIso);
+      const days = [];
+      if (!s) {
+        days.push({ id: `day-${Date.now()}-1`, type: 'day', label: 'Day 1', daytime: [], nighttime: [] });
+      } else {
+        const end = e && e >= s ? e : s;
+        const cur = new Date(s.getTime());
+        let safety = 0;
+        while (cur <= end && safety < 21) {
+          const weekday = cur.toLocaleDateString('en-US', { weekday: 'long' });
+          const month = cur.toLocaleDateString('en-US', { month: 'long' });
+          days.push({
+            id: `day-${Date.now()}-${safety}`,
+            type: 'day',
+            label: `${weekday}, ${month} ${ordinal(cur.getDate())}`,
+            daytime: [],
+            nighttime: []
+          });
+          cur.setDate(cur.getDate() + 1);
+          safety++;
+        }
+      }
+      days.push({ id: `sec-${Date.now()}-extra`, type: 'section', label: 'Extra & Backup Pieces', items: [] });
+      return days;
+    }
+
+    function findMatchingChargersForType(chargerType, items) {
       const norm = normalizeText(chargerType);
-      const electronicsItems = data.items.filter(i => i.list === 'base' && i.category === 'Electronic');
-      if (norm === 'usb c' || norm === 'usbc') return electronicsItems.filter(i => /usb[\s-]*c/i.test(i.name));
+      const electronicsItems = items.filter(i => i.list === 'base' && i.category === 'Electronic');
+      if (norm === 'usb c' || norm === 'usbc') return electronicsItems.filter(i => /usb[\s-]*c|laptop charger/i.test(i.name));
       if (norm === 'android usb') return electronicsItems.filter(i => /android/i.test(i.name));
       if (norm === 'usb') return electronicsItems.filter(i => /watch charger|charging block|phone charger/i.test(i.name));
       if (norm === 'lightning') return electronicsItems.filter(i => /phone charger|lightning/i.test(i.name));
       return [];
     }
 
-    function getScopedItems(scope = ui.listScope) {
-      if (scope === 'base') return data.items.filter(i => i.list === 'base');
-      if (scope === 'trip') return data.items.filter(i => i.list === 'trip');
-      return data.items;
-    }
-
     function computeStats(items) {
-      const counts = { total: items.length, yes: 0, notYet: 0, dayOf: 0, maybe: 0, dontNeed: 0, unset: 0 };
+      const counts = { total: items.length, yes: 0, notYet: 0, dayOf: 0, maybe: 0, dontNeed: 0 };
       for (const item of items) {
         if (item.status === 'Yes') counts.yes++;
-        else if (item.status === 'Not Yet') counts.notYet++;
         else if (item.status === 'Packing Day Of') counts.dayOf++;
         else if (item.status === 'Maybe') counts.maybe++;
         else if (item.status === "Don't Need") counts.dontNeed++;
-        else counts.unset++;
+        else counts.notYet++;
       }
-      counts.required = counts.yes + counts.notYet + counts.dayOf + counts.unset;
-      counts.remaining = counts.notYet + counts.dayOf + counts.unset;
+      counts.required = counts.yes + counts.notYet + counts.dayOf;
+      counts.remaining = counts.notYet + counts.dayOf;
       counts.pct = counts.required > 0 ? Math.round((counts.yes / counts.required) * 100) : 100;
       return counts;
     }
 
-    function renderChrome() {
-      const titleEl = document.getElementById('tripTitle');
-      if (document.activeElement !== titleEl) titleEl.textContent = data.tripTitle;
-      const subEl = document.getElementById('tripSubtitle');
-      if (document.activeElement !== subEl) subEl.textContent = data.tripSubtitle;
+    // Render Trips Bar + Chrome
+    function renderTripsBar() {
+      const bar = document.getElementById('tripsBar');
+      const activeId = getActiveTrip().id;
 
-      const allStats = computeStats(data.items);
-      const unknownChargers = data.electronics.filter(e => e.charger === '???' || !e.charger.trim()).length;
+      bar.innerHTML = store.trips.map(tr => {
+        const st = computeFullTripStats(tr);
+        const active = tr.id === activeId;
+        const dateStr = formatDateRange(tr.startDate, tr.endDate);
+        return `
+          <button type="button" data-select-trip="${tr.id}" class="trip-pill ${active ? 'active' : ''}">
+            <div class="trip-pill-info">
+              <div class="trip-pill-name">${escapeHtml(tr.name)}</div>
+              <div class="trip-pill-sub">${escapeHtml(tr.destination ? `${tr.destination} · ${dateStr}` : dateStr)}</div>
+            </div>
+            <span class="trip-pill-ring" style="${st.pct < 100 && st.remaining > 0 ? 'background-color:color-mix(in srgb, var(--primary) 13%, transparent);color:var(--primary);' : ''}">${st.pct}%</span>
+          </button>
+        `;
+      }).join('') + `
+        <button id="btnCreateTrip" type="button" class="trip-add-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          <span>New Trip</span>
+        </button>
+      `;
+
+      bar.querySelectorAll('[data-select-trip]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (store.activeTripId === btn.dataset.selectTrip) return;
+          store.activeTripId = btn.dataset.selectTrip;
+          ui.categoryFilter = 'all';
+          ui.statusFilter = 'all';
+          ui.outfitStatusFilter = 'all';
+          ui.search = '';
+          saveStore(false);
+          render();
+        });
+      });
+
+      const addTripBtn = document.getElementById('btnCreateTrip');
+      if (addTripBtn) addTripBtn.addEventListener('click', openCreateTripModal);
+    }
+
+    function renderChrome() {
+      renderTripsBar();
+      const trip = getActiveTrip();
+      const checklistStats = computeStats(getTripChecklistItems(trip));
+      const outfitStats = computeStats(getUniqueOutfitEntries(trip));
+      const fullStats = computeFullTripStats(trip);
+      const trackedDevices = getTrackedDevices(trip);
+      const unknownChargers = trackedDevices.filter(d => d.charger === '???' && d.status !== "Don't Need").length;
+
+      document.getElementById('tripTitle').textContent = trip.name;
+      const dateRange = formatDateRange(trip.startDate, trip.endDate);
+      document.getElementById('tripSubtitle').textContent = trip.destination ? `${trip.destination} · ${dateRange}` : dateRange;
+      document.getElementById('tripMetaLeft').textContent = `${store.trips.length} trip${store.trips.length > 1 ? 's' : ''} · ${fullStats.pct}% overall packed`;
 
       document.querySelectorAll('.main-tab').forEach(btn => {
         const active = btn.dataset.tab === ui.activeTab;
@@ -981,28 +1309,28 @@
       });
 
       const bChecklist = document.getElementById('tabBadgeChecklist');
-      bChecklist.textContent = allStats.remaining > 0 ? `${allStats.remaining} left` : 'Done';
+      bChecklist.textContent = checklistStats.remaining > 0 ? `${checklistStats.remaining} left` : 'Done';
       bChecklist.style.backgroundColor = ui.activeTab === 'checklist'
         ? 'color-mix(in srgb, var(--primary-foreground) 18%, transparent)'
         : 'color-mix(in srgb, var(--foreground) 8%, transparent)';
 
       const bOutfits = document.getElementById('tabBadgeOutfits');
-      bOutfits.textContent = `${data.outfits.length}d`;
+      bOutfits.textContent = outfitStats.remaining > 0 ? `${outfitStats.remaining} left` : outfitStats.total > 0 ? 'Done' : 'Custom';
       bOutfits.style.backgroundColor = ui.activeTab === 'outfits'
         ? 'color-mix(in srgb, var(--primary-foreground) 18%, transparent)'
         : 'color-mix(in srgb, var(--foreground) 8%, transparent)';
 
       const bElec = document.getElementById('tabBadgeElectronics');
-      bElec.textContent = unknownChargers > 0 ? `${unknownChargers} ???` : `${data.electronics.length}`;
+      bElec.textContent = unknownChargers > 0 ? `${unknownChargers} ???` : `${trackedDevices.length}`;
       bElec.style.backgroundColor = ui.activeTab === 'electronics'
         ? 'color-mix(in srgb, var(--primary-foreground) 18%, transparent)'
         : (unknownChargers > 0 ? 'color-mix(in srgb, var(--warning) 20%, transparent)' : 'color-mix(in srgb, var(--foreground) 8%, transparent)');
       bElec.style.color = (ui.activeTab !== 'electronics' && unknownChargers > 0) ? 'var(--warning)' : '';
 
       document.getElementById('headerQuickStats').innerHTML = `
-        <span class="stat-item"><span class="dot" style="background: var(--success)"></span><strong>${allStats.yes}</strong> packed</span>
-        <span class="stat-item"><span class="dot" style="background: var(--error)"></span><strong>${allStats.notYet + allStats.unset}</strong> to pack</span>
-        <span class="stat-item"><span class="dot" style="background: var(--warning)"></span><strong>${allStats.dayOf}</strong> day-of</span>
+        <span class="stat-item"><span class="dot" style="background: var(--success)"></span><strong>${fullStats.yes}</strong> packed</span>
+        <span class="stat-item"><span class="dot" style="background: var(--error)"></span><strong>${fullStats.notYet}</strong> to pack</span>
+        <span class="stat-item"><span class="dot" style="background: var(--warning)"></span><strong>${fullStats.dayOf}</strong> day-of</span>
       `;
     }
 
@@ -1017,17 +1345,21 @@
 
     // VIEW 1: PACKING CHECKLIST
     function renderChecklistView(container) {
-      const scoped = getScopedItems();
+      const trip = getActiveTrip();
+      const allItems = getTripChecklistItems(trip);
+      const scoped = ui.listScope === 'base' ? allItems.filter(i => i.list === 'base')
+        : ui.listScope === 'trip' ? allItems.filter(i => i.list === 'trip')
+        : allItems;
       const stats = computeStats(scoped);
       const yesPct = stats.required ? (stats.yes / stats.required) * 100 : 100;
       const dayOfPct = stats.required ? (stats.dayOf / stats.required) * 100 : 0;
 
       const availableCategories = [];
       if (ui.listScope === 'all' || ui.listScope === 'base') {
-        data.baseCategories.forEach(c => { if (!availableCategories.includes(c)) availableCategories.push(c); });
+        store.baseCategories.forEach(c => { if (!availableCategories.includes(c)) availableCategories.push(c); });
       }
       if (ui.listScope === 'all' || ui.listScope === 'trip') {
-        data.tripCategories.forEach(c => { if (!availableCategories.includes(c)) availableCategories.push(c); });
+        store.tripCategories.forEach(c => { if (!availableCategories.includes(c)) availableCategories.push(c); });
       }
       scoped.forEach(i => { if (!availableCategories.includes(i.category)) availableCategories.push(i.category); });
       if (ui.categoryFilter !== 'all' && !availableCategories.includes(ui.categoryFilter)) ui.categoryFilter = 'all';
@@ -1037,11 +1369,11 @@
         if (ui.hideDontNeed && item.status === "Don't Need" && ui.statusFilter !== "Don't Need") return false;
         if (ui.categoryFilter !== 'all' && item.category !== ui.categoryFilter) return false;
         if (ui.statusFilter === 'topack') {
-          if (item.status !== 'Not Yet' && item.status !== '') return false;
+          if (item.status !== 'Not Yet') return false;
         } else if (ui.statusFilter !== 'all') {
           if (item.status !== ui.statusFilter) return false;
         }
-        if (q && !item.name.toLowerCase().includes(q) && !item.category.toLowerCase().includes(q)) return false;
+        if (q && !item.name.toLowerCase().includes(q) && !item.category.toLowerCase().includes(q) && !(item.charger || '').toLowerCase().includes(q)) return false;
         return true;
       });
 
@@ -1054,19 +1386,23 @@
           orderedKeys.push(key);
         }
       };
-      if (ui.listScope === 'all' || ui.listScope === 'base') data.baseCategories.forEach(c => seedGroup('base', c));
-      if (ui.listScope === 'all' || ui.listScope === 'trip') data.tripCategories.forEach(c => seedGroup('trip', c));
+      if (ui.listScope === 'all' || ui.listScope === 'base') store.baseCategories.forEach(c => seedGroup('base', c));
+      if (ui.listScope === 'all' || ui.listScope === 'trip') store.tripCategories.forEach(c => seedGroup('trip', c));
       filtered.forEach(item => { seedGroup(item.list, item.category); groupMap.get(`${item.list}::${item.category}`).items.push(item); });
 
       const isFiltering = ui.statusFilter !== 'all' || ui.categoryFilter !== 'all' || q.length > 0;
-      const groups = orderedKeys.map(k => groupMap.get(k)).filter(g => !isFiltering || g.items.length > 0);
+      const groups = orderedKeys.map(k => groupMap.get(k)).filter(g => {
+        if (isFiltering) return g.items.length > 0;
+        if (ui.listScope === 'all' && g.list === 'trip' && g.items.length === 0 && trip.tripItems.length === 0) return false;
+        return true;
+      });
       if (ui.sortByStatus) groups.forEach(g => g.items.sort((a, b) => getStatusMeta(a.status).order - getStatusMeta(b.status).order));
 
-      const baseCount = data.items.filter(i => i.list === 'base').length;
-      const tripCount = data.items.filter(i => i.list === 'trip').length;
+      const baseCount = store.baseTemplate.length;
+      const tripCount = trip.tripItems.length;
       const statusChips = [
         { key: 'all', label: 'All', count: stats.total, dot: null },
-        { key: 'topack', label: 'To Pack', count: stats.notYet + stats.unset, dot: 'var(--error)' },
+        { key: 'topack', label: 'To Pack', count: stats.notYet, dot: 'var(--error)' },
         { key: 'Packing Day Of', label: 'Day Of', count: stats.dayOf, dot: 'var(--warning)' },
         { key: 'Maybe', label: 'Maybe', count: stats.maybe, dot: 'var(--chart-1)' },
         { key: 'Yes', label: 'Packed', count: stats.yes, dot: 'var(--success)' },
@@ -1079,7 +1415,7 @@
             <div class="readiness-top">
               <div>
                 <div class="readiness-label">
-                  ${ui.listScope === 'all' ? 'Overall Trip Readiness' : ui.listScope === 'base' ? 'Base List Readiness' : 'Trip Specific Readiness'}
+                  ${escapeHtml(trip.name)} · ${ui.listScope === 'all' ? 'Checklist Readiness' : ui.listScope === 'base' ? 'Base List' : 'Trip Specific (Toiletries, Shoes, Accessories & Other)'}
                 </div>
                 <div class="readiness-metric">
                   <span class="readiness-pct">${stats.pct}%</span>
@@ -1093,7 +1429,7 @@
 
               <div class="scope-switcher">
                 ${[
-                  { id: 'all', label: 'All', count: data.items.length },
+                  { id: 'all', label: 'All', count: allItems.length },
                   { id: 'base', label: 'Base List', count: baseCount },
                   { id: 'trip', label: 'Trip Specific', count: tripCount }
                 ].map(s => `
@@ -1134,7 +1470,7 @@
           <section class="toolbar-row">
             <div class="search-box">
               <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input id="searchInput" class="search-input" type="text" value="${escapeHtml(ui.search)}" placeholder="Search items or categories..." />
+              <input id="searchInput" class="search-input" type="text" value="${escapeHtml(ui.search)}" placeholder="Search items, categories, or chargers..." />
               ${ui.search ? '<button id="clearSearchBtn" type="button" class="search-clear">&times;</button>' : ''}
             </div>
 
@@ -1153,7 +1489,7 @@
               <button id="btnClearFilters" type="button" class="btn btn-primary">Clear Filters</button>
             </div>
           ` : `
-            <div class="grid-2">${groups.map(g => renderCategoryCard(g)).join('')}</div>
+            <div class="grid-2">${groups.map(g => renderCategoryCard(g, allItems)).join('')}</div>
           `}
         </div>
       `;
@@ -1161,8 +1497,8 @@
       bindChecklistEvents();
     }
 
-    function renderCategoryCard(group) {
-      const allGroupItems = data.items.filter(i => i.list === group.list && i.category === group.category);
+    function renderCategoryCard(group, allItems) {
+      const allGroupItems = allItems.filter(i => i.list === group.list && i.category === group.category);
       const gStats = computeStats(allGroupItems);
       const collapsed = !!ui.collapsedGroups[group.key];
       const listLabel = group.list === 'base' ? 'Base List' : 'Trip Specific';
@@ -1181,22 +1517,26 @@
             <div class="cat-header-right">
               ${gStats.remaining > 0 ? `
                 <button type="button" data-pack-all-list="${group.list}" data-pack-all-cat="${escapeHtml(group.category)}" class="pack-all-btn" title="Mark remaining items as Packed">Pack all</button>
-              ` : `
+              ` : gStats.required > 0 ? `
                 <span class="text-xs" style="color:var(--success);font-weight:500;">All packed</span>
-              `}
+              ` : ''}
               <span class="cat-count">${gStats.yes}/${gStats.required}</span>
             </div>
           </div>
 
           <div class="progress-thin">
-            <div class="progress-seg" style="width:${gStats.pct}%;background-color:var(--success);"></div>
+            <div class="progress-seg" style="width:${gStats.required ? gStats.pct : 0}%;background-color:var(--success);"></div>
           </div>
 
           ${collapsed ? '' : `
-            <ul class="item-list">${group.items.map(renderItemRow).join('')}</ul>
+            ${group.items.length === 0 ? `
+              <p class="text-xs muted" style="margin:0;padding:12px 14px;font-style:italic;">No items in ${escapeHtml(group.category)} yet — add one below.</p>
+            ` : `
+              <ul class="item-list">${group.items.map(renderItemRow).join('')}</ul>
+            `}
             <form class="quick-add-form" data-list="${group.list}" data-category="${escapeHtml(group.category)}">
               <svg width="14" height="14" class="muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              <input type="text" class="quick-add-input" placeholder="Add to ${escapeHtml(group.category)}..." />
+              <input type="text" class="quick-add-input" placeholder="Add to ${escapeHtml(group.category)} (${listLabel})..." />
               <button type="submit" class="link-btn">Add</button>
             </form>
           `}
@@ -1218,14 +1558,15 @@
             </button>
             <span data-edit-id="${item.id}" title="Double-click to rename"
                   class="item-name ${isSkipped ? 'skipped' : isPacked ? 'packed' : ''}">${escapeHtml(item.name)}</span>
+            ${item.charger ? `<span class="charger-tag ${item.charger === '???' ? 'warn' : ''}" title="Charger type">${escapeHtml(item.charger)}</span>` : ''}
           </div>
 
           <div class="item-right">
-            <button type="button" data-popover-id="${item.id}" class="status-pill ${meta.cls}">
+            <button type="button" data-popover-kind="item" data-popover-id="${item.id}" class="status-pill ${meta.cls}">
               <span class="dot-sm" style="background-color:${meta.dot};"></span>
               <span>${escapeHtml(meta.short)}</span>
             </button>
-            <button type="button" data-delete-id="${item.id}" title="Delete item" class="icon-del">
+            <button type="button" data-delete-id="${item.id}" title="${item.list === 'base' ? 'Remove from Base List template' : 'Delete item'}" class="icon-del">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
             </button>
           </div>
@@ -1234,6 +1575,9 @@
     }
 
     function bindChecklistEvents() {
+      const trip = getActiveTrip();
+      const allItems = getTripChecklistItems(trip);
+
       document.querySelectorAll('.scope-btn').forEach(btn => {
         btn.addEventListener('click', () => { ui.listScope = btn.dataset.scope; ui.categoryFilter = 'all'; render(); });
       });
@@ -1285,47 +1629,51 @@
         btn.addEventListener('click', () => {
           const list = btn.dataset.packAllList;
           const cat = btn.dataset.packAllCat;
-          const prev = clone(data);
+          const prev = clone(store);
           let changed = 0;
-          data.items.forEach(i => {
-            if (i.list === list && i.category === cat && (i.status === 'Not Yet' || i.status === 'Packing Day Of' || i.status === '')) {
-              i.status = 'Yes'; changed++;
+          allItems.forEach(i => {
+            if (i.list === list && i.category === cat && (i.status === 'Not Yet' || i.status === 'Packing Day Of')) {
+              setItemStatus(i.id, 'Yes', trip);
+              changed++;
             }
           });
           if (changed > 0) {
-            saveData(); render();
-            showToast(`Marked ${changed} item${changed > 1 ? 's' : ''} in ${cat} as Packed`, () => { data = prev; saveData(); render(); });
+            saveStore(); render();
+            showToast(`Marked ${changed} item${changed > 1 ? 's' : ''} in ${cat} as Packed`, () => { store = prev; saveStore(); render(); });
           }
         });
       });
 
       document.querySelectorAll('[data-toggle-id]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const item = data.items.find(i => i.id === btn.dataset.toggleId);
+          const item = allItems.find(i => i.id === btn.dataset.toggleId);
           if (!item) return;
-          item.status = item.status === 'Yes' ? 'Not Yet' : 'Yes';
-          saveData(); render();
+          setItemStatus(item.id, item.status === 'Yes' ? 'Not Yet' : 'Yes', trip);
+          saveStore(); render();
         });
       });
 
       document.querySelectorAll('[data-popover-id]').forEach(btn => {
-        btn.addEventListener('click', (e) => { e.stopPropagation(); openStatusPopover(btn.dataset.popoverId, btn); });
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openStatusPopover(btn.dataset.popoverKind, btn.dataset.popoverId, btn);
+        });
       });
 
       document.querySelectorAll('[data-delete-id]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const item = data.items.find(i => i.id === btn.dataset.deleteId);
+          const item = allItems.find(i => i.id === btn.dataset.deleteId);
           if (!item) return;
-          const prev = clone(data);
-          data.items = data.items.filter(i => i.id !== item.id);
-          saveData(); render();
-          showToast(`Removed "${item.name}"`, () => { data = prev; saveData(); render(); });
+          const prev = clone(store);
+          deleteItem(item.id, trip);
+          saveStore(); render();
+          showToast(`Removed "${item.name}"${item.list === 'base' ? ' from Base List' : ''}`, () => { store = prev; saveStore(); render(); });
         });
       });
 
       document.querySelectorAll('[data-edit-id]').forEach(span => {
         span.addEventListener('dblclick', () => {
-          const item = data.items.find(i => i.id === span.dataset.editId);
+          const item = allItems.find(i => i.id === span.dataset.editId);
           if (!item) return;
           const input = document.createElement('input');
           input.type = 'text'; input.value = item.name; input.className = 'inline-edit';
@@ -1333,7 +1681,7 @@
           input.focus(); input.select();
           const commit = () => {
             const val = input.value.trim();
-            if (val && val !== item.name) { item.name = val; saveData(); }
+            if (val && val !== item.name) { renameItem(item.id, val, trip); saveStore(); }
             render();
           };
           input.addEventListener('blur', commit);
@@ -1347,33 +1695,44 @@
       document.querySelectorAll('.quick-add-form').forEach(form => {
         form.addEventListener('submit', (e) => {
           e.preventDefault();
-          const input = form.querySelector('input');
-          const name = input.value.trim();
+          const name = form.querySelector('input').value.trim();
           if (!name) return;
-          const list = form.dataset.list;
-          const category = form.dataset.category;
-          data.items.push({ id: `${list}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, list, category, name, status: 'Not Yet' });
-          saveData(); render();
-          showToast(`Added "${name}" to ${category}`);
+          addItemToList(form.dataset.list, form.dataset.category, name, 'Not Yet', '', trip);
+          saveStore(); render();
+          showToast(`Added "${name}" to ${form.dataset.category}`);
         });
       });
     }
 
-    function openStatusPopover(itemId, anchorEl) {
+    // Unified Floating Status Popover (for Checklist items AND Outfit pieces)
+    function openStatusPopover(kind, targetId, anchorEl) {
       const pop = document.getElementById('statusPopover');
-      if (ui.openPopoverItemId === itemId && !pop.classList.contains('hidden')) { closePopover(); return; }
-      ui.openPopoverItemId = itemId;
-      const item = data.items.find(i => i.id === itemId);
-      if (!item) return;
+      if (ui.openPopoverTarget && ui.openPopoverTarget.kind === kind && ui.openPopoverTarget.id === targetId && !pop.classList.contains('hidden')) {
+        closePopover();
+        return;
+      }
+      ui.openPopoverTarget = { kind, id: targetId };
+      const trip = getActiveTrip();
+      const checklistItems = getTripChecklistItems(trip);
 
-      const options = STATUSES.filter(s => s.value !== '');
-      pop.innerHTML = options.map(st => `
-        <button type="button" data-pick-status="${escapeHtml(st.value)}" class="pop-opt" style="${item.status === st.value ? 'font-weight:600;' : ''}">
+      let currentStatus = 'Not Yet';
+      if (kind === 'item') {
+        const item = checklistItems.find(i => i.id === targetId);
+        if (!item) return;
+        currentStatus = item.status;
+      } else {
+        const found = getAllOutfitPieces(trip).find(e => e.piece.id === targetId);
+        if (!found) return;
+        currentStatus = getOutfitPieceStatus(found.piece, checklistItems);
+      }
+
+      pop.innerHTML = STATUSES.map(st => `
+        <button type="button" data-pick-status="${escapeHtml(st.value)}" class="pop-opt" style="${currentStatus === st.value ? 'font-weight:600;' : ''}">
           <span style="display:flex;align-items:center;gap:8px;">
             <span class="dot" style="background-color:${st.dot};"></span>
             <span>${escapeHtml(st.value)}</span>
           </span>
-          ${item.status === st.value ? '<svg width="14" height="14" style="color:var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+          ${currentStatus === st.value ? '<svg width="14" height="14" style="color:var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
         </button>
       `).join('');
 
@@ -1390,8 +1749,9 @@
       pop.querySelectorAll('[data-pick-status]').forEach(btn => {
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
-          item.status = btn.dataset.pickStatus;
-          saveData(); closePopover(); render();
+          if (kind === 'item') setItemStatus(targetId, btn.dataset.pickStatus, trip);
+          else setOutfitPieceStatus(targetId, btn.dataset.pickStatus, trip);
+          saveStore(); closePopover(); render();
         });
       });
     }
@@ -1399,209 +1759,415 @@
     function closePopover() {
       const pop = document.getElementById('statusPopover');
       if (pop) pop.classList.add('hidden');
-      ui.openPopoverItemId = null;
+      ui.openPopoverTarget = null;
     }
 
-    // VIEW 2: OUTFITS PLANNER
+    // VIEW 2: CUSTOM PER-TRIP OUTFITS TAB (Replaces Trip Specific -> Clothing)
     function renderOutfitsView(container) {
-      let totalPieces = 0, trackedPacked = 0, untracked = 0;
-      data.outfits.forEach(d => {
-        [...d.daytime, ...d.nighttime].forEach(p => {
-          totalPieces++;
-          const m = findMatchingPackingItem(p);
-          if (!m) untracked++;
-          else if (m.status === 'Yes') trackedPacked++;
-        });
-      });
+      const trip = getActiveTrip();
+      const checklistItems = getTripChecklistItems(trip);
+      const uniquePieces = getUniqueOutfitEntries(trip);
+      const stats = computeStats(uniquePieces);
+      const yesPct = stats.required ? (stats.yes / stats.required) * 100 : 100;
+      const dayOfPct = stats.required ? (stats.dayOf / stats.required) * 100 : 0;
+
+      const statusChips = [
+        { key: 'all', label: 'All', count: stats.total, dot: null },
+        { key: 'Not Yet', label: 'To Pack', count: stats.notYet, dot: 'var(--error)' },
+        { key: 'Packing Day Of', label: 'Day Of', count: stats.dayOf, dot: 'var(--warning)' },
+        { key: 'Maybe', label: 'Maybe', count: stats.maybe, dot: 'var(--chart-1)' },
+        { key: 'Yes', label: 'Packed', count: stats.yes, dot: 'var(--success)' },
+        { key: "Don't Need", label: "Don't Need", count: stats.dontNeed, dot: 'var(--muted-foreground)' }
+      ];
 
       container.innerHTML = `
         <div class="stack">
-          <section class="card card-padded" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-            <div>
-              <h2 style="margin:0;font-size:14px;font-weight:600;">Day-by-Day Outfit Planner</h2>
-              <p class="text-xs muted" style="margin:3px 0 0;">
-                ${data.outfits.length} days · ${totalPieces} planned pieces ·
-                <span style="color:var(--success);font-weight:500;">${trackedPacked} packed</span>
-                ${untracked > 0 ? ` · ${untracked} not yet on packing list (click "+ Track" to add)` : ''}
-              </p>
+          <!-- Custom Outfits Readiness & Actions -->
+          <section class="card card-padded" style="display:flex;flex-direction:column;gap:14px;">
+            <div class="readiness-top">
+              <div>
+                <div class="readiness-label">${escapeHtml(trip.name)} · Custom Trip Outfits &amp; Clothing</div>
+                <div class="readiness-metric">
+                  <span class="readiness-pct">${stats.pct}%</span>
+                  <span class="readiness-detail">
+                    <strong>${stats.yes}</strong> of <strong>${stats.required}</strong> outfit pieces packed
+                    ${stats.maybe > 0 ? `· ${stats.maybe} maybe` : ''}
+                    · custom to this trip
+                  </span>
+                </div>
+              </div>
+
+              <div class="chip-wrap">
+                <button id="btnAddDay" type="button" class="btn btn-primary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  Add Day
+                </button>
+                <button id="btnAddSection" type="button" class="btn btn-secondary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                  Add Custom Section
+                </button>
+              </div>
             </div>
-            <button id="btnAddDay" type="button" class="btn btn-primary">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              Add Day
-            </button>
+
+            <div class="progress-track">
+              <div class="progress-seg" style="width:${yesPct.toFixed(1)}%;background-color:var(--success);"></div>
+              <div class="progress-seg" style="width:${dayOfPct.toFixed(1)}%;background-color:var(--warning);"></div>
+            </div>
+
+            <div class="filter-row">
+              <div class="chip-wrap">
+                ${statusChips.map(ch => `
+                  <button type="button" data-outfit-filter="${escapeHtml(ch.key)}" class="chip outfit-filter-btn ${ui.outfitStatusFilter === ch.key ? 'active' : ''}">
+                    ${ch.dot ? `<span class="dot-sm" style="background-color:${ui.outfitStatusFilter === ch.key ? 'currentColor' : ch.dot};"></span>` : ''}
+                    <span>${ch.label}</span>
+                    <span class="tabular" style="opacity:0.75;">${ch.count}</span>
+                  </button>
+                `).join('')}
+              </div>
+              <span class="text-xs muted">Check items off right here — shoes/accessories auto-sync with your checklist.</span>
+            </div>
           </section>
 
-          <div class="grid-3">${data.outfits.map(renderOutfitDayCard).join('')}</div>
+          <!-- Day & Custom Section Cards -->
+          ${trip.outfits.length === 0 ? `
+            <div class="card empty-state">
+              <p style="margin:0 0 6px;font-weight:600;">No outfit days or sections yet for ${escapeHtml(trip.name)}</p>
+              <p class="text-xs muted" style="margin:0 0 14px;">Add a day card (Daytime / Nighttime) or a custom section like "Work Looks" or "Dinner Outfits".</p>
+            </div>
+          ` : `
+            <div class="grid-3">${trip.outfits.map(card => renderOutfitCard(card, checklistItems)).join('')}</div>
+          `}
         </div>
       `;
 
       bindOutfitsEvents();
     }
 
-    function renderOutfitSlot(dayId, slot, pieces) {
+    function renderOutfitPieceRow(cardId, slot, piece, checklistItems) {
+      const linked = findLinkedChecklistItem(piece.name, checklistItems);
+      const status = linked ? linked.status : (piece.status || 'Not Yet');
+      if (ui.outfitStatusFilter !== 'all' && status !== ui.outfitStatusFilter) return '';
+
+      const meta = getStatusMeta(status);
+      const isPacked = status === 'Yes';
+      const isSkipped = status === "Don't Need";
+
+      return `
+        <li class="outfit-piece ${isSkipped ? 'skipped' : ''}">
+          <div class="item-left">
+            <button type="button" data-outfit-check="${piece.id}" aria-label="Toggle packed status for ${escapeHtml(piece.name)}"
+                    class="check-circle ${isPacked ? 'checked' : ''}">
+              ${isPacked ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+            <span data-outfit-rename="${piece.id}" title="Double-click to rename"
+                  class="item-name ${isSkipped ? 'skipped' : isPacked ? 'packed' : ''}">${escapeHtml(piece.name)}</span>
+            ${linked ? `<span class="sync-tag" title="Synced with ${linked.list === 'base' ? 'Base List' : 'Trip Specific'} → ${escapeHtml(linked.category)}">${escapeHtml(linked.category)}</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+            <button type="button" data-popover-kind="outfit" data-popover-id="${piece.id}" class="status-pill ${meta.cls}" style="padding:1px 8px;">
+              <span class="dot-sm" style="background-color:${meta.dot};"></span><span>${escapeHtml(meta.short)}</span>
+            </button>
+            <button type="button" data-remove-piece-card="${cardId}" data-remove-piece-slot="${slot}" data-remove-piece-id="${piece.id}" title="Remove piece" class="icon-del" style="width:20px;height:20px;">&times;</button>
+          </div>
+        </li>
+      `;
+    }
+
+    function renderOutfitSlot(cardId, slot, pieces, checklistItems, isCustomSection = false) {
       const isDay = slot === 'daytime';
+      const renderedRows = pieces.map(p => renderOutfitPieceRow(cardId, slot, p, checklistItems)).filter(Boolean);
+      const placeholder = isCustomSection ? 'Add outfit or clothing piece...' : `Add ${isDay ? 'daytime' : 'nighttime'} piece...`;
+
       return `
         <div class="slot-block">
-          <div class="slot-head">
-            <span class="slot-label">
-              ${isDay
-                ? '<svg width="14" height="14" style="color:var(--warning);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
-                : '<svg width="14" height="14" style="color:var(--chart-1);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'}
-              ${isDay ? 'Daytime' : 'Nighttime'}
-            </span>
-            <span class="text-xs muted tabular">${pieces.length}</span>
-          </div>
-
-          ${pieces.length === 0 ? '<p class="text-xs muted" style="margin:2px 0;font-style:italic;">No pieces planned yet</p>' : `
-            <ul class="outfit-list">
-              ${pieces.map((piece, idx) => {
-                const match = findMatchingPackingItem(piece);
-                const meta = match ? getStatusMeta(match.status) : null;
-                return `
-                  <li class="outfit-piece">
-                    <span class="text-xs" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(piece)}</span>
-                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                      ${match ? `
-                        <button type="button" data-outfit-toggle-item="${match.id}" title="Linked to ${escapeHtml(match.name)}. Click to toggle packed." class="status-pill ${meta.cls}" style="padding:1px 8px;">
-                          <span class="dot-sm" style="background-color:${meta.dot};"></span><span>${escapeHtml(meta.short)}</span>
-                        </button>
-                      ` : `
-                        <button type="button" data-track-piece="${escapeHtml(piece)}" title="Add to Trip Specific" class="track-btn">+ Track</button>
-                      `}
-                      <button type="button" data-remove-piece-day="${dayId}" data-remove-piece-slot="${slot}" data-remove-piece-idx="${idx}" title="Remove piece" class="icon-del" style="width:20px;height:20px;">&times;</button>
-                    </div>
-                  </li>
-                `;
-              }).join('')}
-            </ul>
+          ${isCustomSection ? '' : `
+            <div class="slot-head">
+              <span class="slot-label">
+                ${isDay
+                  ? '<svg width="14" height="14" style="color:var(--warning);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>'
+                  : '<svg width="14" height="14" style="color:var(--chart-1);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'}
+                ${isDay ? 'Daytime' : 'Nighttime'}
+              </span>
+              <span class="text-xs muted tabular">${pieces.length}</span>
+            </div>
           `}
 
-          <form class="outfit-add-form" data-day="${dayId}" data-slot="${slot}">
-            <input type="text" class="outfit-add-input" placeholder="Add ${isDay ? 'daytime' : 'nighttime'} piece..." />
+          ${renderedRows.length === 0
+            ? `<p class="text-xs muted" style="margin:2px 0;font-style:italic;">${pieces.length === 0 ? 'No pieces planned yet' : 'No pieces match filter'}</p>`
+            : `<ul class="outfit-list">${renderedRows.join('')}</ul>`}
+
+          <form class="outfit-add-form" data-card="${cardId}" data-slot="${slot}">
+            <input type="text" class="outfit-add-input" placeholder="${placeholder}" />
             <button type="submit" class="link-btn">Add</button>
           </form>
         </div>
       `;
     }
 
-    function renderOutfitDayCard(day) {
+    function renderOutfitCard(card, checklistItems) {
+      const isSection = card.type === 'section';
+      const cardPieces = isSection ? (card.items || []) : [...(card.daytime || []), ...(card.nighttime || [])];
+      const cardStats = computeStats(cardPieces.map(p => ({ status: getOutfitPieceStatus(p, checklistItems) })));
+
       return `
         <article class="card">
           <div class="cat-header">
-            <h3 data-day-title="${day.id}" class="day-title" contenteditable="true" spellcheck="false" title="Click to edit date label"
-                style="margin:0;font-size:14px;font-weight:600;outline:none;border-radius:6px;padding:0 4px;margin-left:-4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-              ${escapeHtml(day.label)}
-            </h3>
-            <button type="button" data-delete-day="${day.id}" class="pack-all-btn" style="flex-shrink:0;">Remove</button>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+              <h3 data-day-title="${card.id}" class="day-title" contenteditable="true" spellcheck="false" title="Click to rename"
+                  style="margin:0;font-size:14px;font-weight:600;outline:none;border-radius:6px;padding:0 4px;margin-left:-4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                ${escapeHtml(card.label)}
+              </h3>
+              ${isSection ? '<span class="list-tag">Custom</span>' : ''}
+            </div>
+            <div class="cat-header-right">
+              ${cardStats.remaining > 0 ? `<button type="button" data-pack-card="${card.id}" class="pack-all-btn" title="Mark all pieces here as Packed">Pack all</button>` : ''}
+              <span class="cat-count">${cardStats.yes}/${cardStats.required}</span>
+              <button type="button" data-delete-day="${card.id}" class="pack-all-btn" title="Remove card">&times;</button>
+            </div>
+          </div>
+          <div class="progress-thin">
+            <div class="progress-seg" style="width:${cardStats.required ? cardStats.pct : 0}%;background-color:var(--success);"></div>
           </div>
           <div>
-            ${renderOutfitSlot(day.id, 'daytime', day.daytime)}
-            ${renderOutfitSlot(day.id, 'nighttime', day.nighttime)}
+            ${isSection
+              ? renderOutfitSlot(card.id, 'items', card.items || [], checklistItems, true)
+              : renderOutfitSlot(card.id, 'daytime', card.daytime || [], checklistItems, false) +
+                renderOutfitSlot(card.id, 'nighttime', card.nighttime || [], checklistItems, false)}
           </div>
         </article>
       `;
     }
 
     function bindOutfitsEvents() {
+      const trip = getActiveTrip();
+      const checklistItems = getTripChecklistItems(trip);
+
+      document.querySelectorAll('.outfit-filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.outfitFilter;
+          ui.outfitStatusFilter = (ui.outfitStatusFilter === val && val !== 'all') ? 'all' : val;
+          render();
+        });
+      });
+
       const btnAddDay = document.getElementById('btnAddDay');
       if (btnAddDay) {
         btnAddDay.addEventListener('click', () => {
-          data.outfits.push({ id: `day-${Date.now()}`, label: `Day ${data.outfits.length + 1}`, daytime: [], nighttime: [] });
-          saveData(); render();
+          const dayCount = trip.outfits.filter(c => c.type !== 'section').length;
+          trip.outfits.push({ id: `day-${Date.now()}`, type: 'day', label: `Day ${dayCount + 1}`, daytime: [], nighttime: [] });
+          saveStore(); render();
         });
       }
+
+      const btnAddSection = document.getElementById('btnAddSection');
+      if (btnAddSection) {
+        btnAddSection.addEventListener('click', openAddOutfitSectionModal);
+      }
+
       document.querySelectorAll('[data-day-title]').forEach(el => {
         el.addEventListener('blur', () => {
-          const day = data.outfits.find(d => d.id === el.dataset.dayTitle);
+          const card = trip.outfits.find(d => d.id === el.dataset.dayTitle);
           const val = el.textContent.trim();
-          if (day && val && val !== day.label) { day.label = val; saveData(); }
+          if (card && val && val !== card.label) { card.label = val; saveStore(); }
         });
         el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); el.blur(); } });
       });
-      document.querySelectorAll('[data-delete-day]').forEach(btn => {
+
+      document.querySelectorAll('[data-pack-card]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const day = data.outfits.find(d => d.id === btn.dataset.deleteDay);
-          if (!day) return;
-          const prev = clone(data);
-          data.outfits = data.outfits.filter(d => d.id !== day.id);
-          saveData(); render();
-          showToast(`Removed ${day.label}`, () => { data = prev; saveData(); render(); });
+          const card = trip.outfits.find(c => c.id === btn.dataset.packCard);
+          if (!card) return;
+          const prev = clone(store);
+          const pieces = card.type === 'section' ? (card.items || []) : [...(card.daytime || []), ...(card.nighttime || [])];
+          let changed = 0;
+          pieces.forEach(p => {
+            const st = getOutfitPieceStatus(p, getTripChecklistItems(trip));
+            if (st === 'Not Yet' || st === 'Packing Day Of') {
+              setOutfitPieceStatus(p.id, 'Yes', trip);
+              changed++;
+            }
+          });
+          if (changed > 0) {
+            saveStore(); render();
+            showToast(`Packed ${changed} piece${changed > 1 ? 's' : ''} in ${card.label}`, () => { store = prev; saveStore(); render(); });
+          }
         });
       });
+
+      document.querySelectorAll('[data-delete-day]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = trip.outfits.find(d => d.id === btn.dataset.deleteDay);
+          if (!card) return;
+          const prev = clone(store);
+          trip.outfits = trip.outfits.filter(d => d.id !== card.id);
+          saveStore(); render();
+          showToast(`Removed "${card.label}"`, () => { store = prev; saveStore(); render(); });
+        });
+      });
+
       document.querySelectorAll('.outfit-add-form').forEach(form => {
         form.addEventListener('submit', (e) => {
           e.preventDefault();
           const val = form.querySelector('input').value.trim();
           if (!val) return;
-          const day = data.outfits.find(d => d.id === form.dataset.day);
-          if (!day) return;
-          day[form.dataset.slot].push(val);
-          saveData(); render();
+          const card = trip.outfits.find(d => d.id === form.dataset.card);
+          if (!card) return;
+          const slot = form.dataset.slot;
+          if (!Array.isArray(card[slot])) card[slot] = [];
+          // Inherit status if another outfit slot or checklist item already tracks this piece
+          const linked = findLinkedChecklistItem(val, checklistItems);
+          const existingSame = getAllOutfitPieces(trip).find(e => normalizeText(e.piece.name) === normalizeText(val));
+          const initialStatus = linked ? linked.status : existingSame ? existingSame.piece.status : 'Not Yet';
+          card[slot].push(makePiece(val, initialStatus));
+          saveStore(); render();
         });
       });
-      document.querySelectorAll('[data-remove-piece-day]').forEach(btn => {
+
+      document.querySelectorAll('[data-outfit-check]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const day = data.outfits.find(d => d.id === btn.dataset.removePieceDay);
-          if (!day) return;
-          const prev = clone(data);
-          const [removed] = day[btn.dataset.removePieceSlot].splice(Number(btn.dataset.removePieceIdx), 1);
-          saveData(); render();
-          showToast(`Removed "${removed}" from ${day.label}`, () => { data = prev; saveData(); render(); });
+          const found = getAllOutfitPieces(trip).find(e => e.piece.id === btn.dataset.outfitCheck);
+          if (!found) return;
+          const cur = getOutfitPieceStatus(found.piece, checklistItems);
+          setOutfitPieceStatus(found.piece.id, cur === 'Yes' ? 'Not Yet' : 'Yes', trip);
+          saveStore(); render();
         });
       });
-      document.querySelectorAll('[data-outfit-toggle-item]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const item = data.items.find(i => i.id === btn.dataset.outfitToggleItem);
-          if (!item) return;
-          item.status = item.status === 'Yes' ? 'Not Yet' : 'Yes';
-          saveData(); render();
+
+      document.querySelectorAll('[data-popover-id]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openStatusPopover(btn.dataset.popoverKind, btn.dataset.popoverId, btn);
         });
       });
-      document.querySelectorAll('[data-track-piece]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const name = btn.dataset.trackPiece;
-          const cat = /heel|boot|sandal|shoe|sneaker|slide|dunk/i.test(name) ? 'Shoes' : /belt|bag|purse|scarf|glass|hat|cap|jewelry/i.test(name) ? 'Accessories' : 'Clothing';
-          data.items.push({ id: `trip-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`, list: 'trip', category: cat, name, status: 'Not Yet' });
-          saveData(); render();
-          showToast(`Added "${name}" to Trip Specific → ${cat}`);
+
+      document.querySelectorAll('[data-outfit-rename]').forEach(span => {
+        span.addEventListener('dblclick', () => {
+          const found = getAllOutfitPieces(trip).find(e => e.piece.id === span.dataset.outfitRename);
+          if (!found) return;
+          const input = document.createElement('input');
+          input.type = 'text'; input.value = found.piece.name; input.className = 'inline-edit';
+          span.replaceWith(input);
+          input.focus(); input.select();
+          const commit = () => {
+            const val = input.value.trim();
+            if (val && val !== found.piece.name) { found.piece.name = val; saveStore(); }
+            render();
+          };
+          input.addEventListener('blur', commit);
+          input.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter') input.blur();
+            if (ev.key === 'Escape') render();
+          });
         });
+      });
+
+      document.querySelectorAll('[data-remove-piece-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const card = trip.outfits.find(d => d.id === btn.dataset.removePieceCard);
+          if (!card) return;
+          const slot = btn.dataset.removePieceSlot;
+          const id = btn.dataset.removePieceId;
+          const target = (card[slot] || []).find(p => p.id === id);
+          if (!target) return;
+          const prev = clone(store);
+          card[slot] = card[slot].filter(p => p.id !== id);
+          saveStore(); render();
+          showToast(`Removed "${target.name}" from ${card.label}`, () => { store = prev; saveStore(); render(); });
+        });
+      });
+    }
+
+    function openAddOutfitSectionModal() {
+      const trip = getActiveTrip();
+      openModal(`
+        <div class="modal-head">
+          <h3>Add Custom Outfit Section</h3>
+          <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
+        </div>
+        <form id="addSectionForm" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label class="field-label">Section Name</label>
+            <input id="secName" type="text" required class="text-input" style="width:100%;" placeholder="e.g., Dinner Looks, Workout Gear, Swimwear, Work Outfits..." />
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
+            <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Add Section</button>
+          </div>
+        </form>
+      `);
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      document.getElementById('cancelModalBtn').onclick = closeModal;
+      document.getElementById('secName').focus();
+      document.getElementById('addSectionForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const label = document.getElementById('secName').value.trim();
+        if (!label) return;
+        trip.outfits.push({ id: `sec-${Date.now()}`, type: 'section', label, items: [] });
+        saveStore(); closeModal(); render();
+        showToast(`Added "${label}" section`);
       });
     }
 
     // VIEW 3: ELECTRONICS & CHARGERS
     function renderElectronicsView(container) {
+      const trip = getActiveTrip();
+      const allItems = getTripChecklistItems(trip);
+      const devices = getTrackedDevices(trip);
+
+      const mirrorItem = devices.find(d => d.id === 'base-85');
+      const showMirrorAlert = !store.dismissedMirrorNote && mirrorItem && mirrorItem.charger === 'Android USB';
+
       const byCharger = new Map();
-      data.electronics.forEach(e => {
-        const key = (e.charger || '???').trim() || '???';
-        if (!byCharger.has(key)) byCharger.set(key, []);
-        byCharger.get(key).push(e);
+      devices.forEach(d => {
+        const key = (d.charger || '???').trim();
+        const bringing = d.status !== "Don't Need";
+        if (!byCharger.has(key)) byCharger.set(key, { active: [], skipped: [] });
+        if (bringing) byCharger.get(key).active.push(d);
+        else byCharger.get(key).skipped.push(d);
       });
+
       const chargerEntries = Array.from(byCharger.entries()).sort((a, b) => {
         if (a[0] === '???') return -1;
         if (b[0] === '???') return 1;
-        return b[1].length - a[1].length;
+        return b[1].active.length - a[1].active.length;
       });
 
       container.innerHTML = `
         <div class="stack">
+          ${showMirrorAlert ? `
+            <div class="callout">
+              <div>
+                <strong style="color:var(--warning);">Double-check Makeup Mirror charger:</strong>
+                <span>Your Base List has <em>Long USB-C Charger (for mirror)</em>, while Makeup Mirror is listed as <em>Android USB</em>. Update the dropdown below once you check!</span>
+              </div>
+              <button id="btnDismissMirrorNote" type="button" class="link-btn" style="flex-shrink:0;">Got it</button>
+            </div>
+          ` : ''}
+
           <section class="grid-4">
-            ${chargerEntries.map(([chargerType, devices]) => {
+            ${chargerEntries.map(([chargerType, bucket]) => {
               const isUnknown = chargerType === '???';
-              const matchedCables = findMatchingChargersForType(chargerType);
+              const matchedCables = findMatchingChargersForType(chargerType, allItems);
               const anyPacked = matchedCables.some(c => c.status === 'Yes');
+              const activeCount = bucket.active.length;
               return `
-                <div class="card card-padded" style="display:flex;flex-direction:column;gap:8px;">
+                <div class="card card-padded" style="display:flex;flex-direction:column;gap:8px;${activeCount === 0 ? 'opacity:0.6;' : ''}">
                   <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
                     <span class="status-pill ${isUnknown ? 'st-dayof' : 'st-maybe'}" style="cursor:default;">${isUnknown ? 'Needs Check (???)' : escapeHtml(chargerType)}</span>
-                    <span class="text-xs muted tabular">${devices.length} device${devices.length > 1 ? 's' : ''}</span>
+                    <span class="text-xs muted tabular">${activeCount} needed</span>
                   </div>
-                  <p class="text-xs" style="margin:0;line-height:1.5;">${devices.map(d => escapeHtml(d.device)).join(', ')}</p>
+                  <p class="text-xs" style="margin:0;line-height:1.5;">
+                    ${activeCount > 0 ? bucket.active.map(d => escapeHtml(d.name)).join(', ') : '<span class="muted">None needed on this trip</span>'}
+                    ${bucket.skipped.length > 0 ? `<span class="muted"> (skipping: ${bucket.skipped.map(d => escapeHtml(d.name)).join(', ')})</span>` : ''}
+                  </p>
                   <div class="text-xs" style="padding-top:8px;border-top:1px solid var(--card-border);">
-                    ${isUnknown
-                      ? '<span style="color:var(--warning);">Check cable type below</span>'
-                      : matchedCables.length > 0
-                        ? `<span style="color:${anyPacked ? 'var(--success)' : 'var(--error)'};">${anyPacked ? '✓ Cable packed in Base List' : 'Cable not packed yet'}</span>`
-                        : '<span class="muted">Verify cable in Base List</span>'}
+                    ${activeCount === 0
+                      ? '<span class="muted">Cable optional for this trip</span>'
+                      : isUnknown
+                        ? '<span style="color:var(--warning);">Check cable type below</span>'
+                        : matchedCables.length > 0
+                          ? `<span style="color:${anyPacked ? 'var(--success)' : 'var(--error)'};">${anyPacked ? '✓ Cable packed for this trip' : 'Cable not packed yet'}</span>`
+                          : '<span class="muted">Verify cable in Base List</span>'}
                   </div>
                 </div>
               `;
@@ -1612,9 +2178,9 @@
             <div class="cat-header">
               <div>
                 <h2 style="margin:0;font-size:14px;font-weight:600;">Electronics &amp; Charger Reference</h2>
-                <p class="text-xs muted" style="margin:2px 0 0;">Update charger types inline and verify packing status against Base List → Electronic.</p>
+                <p class="text-xs muted" style="margin:2px 0 0;">Synced directly with <strong>Base List → Electronic</strong> · statuses reflect <strong>${escapeHtml(trip.name)}</strong>.</p>
               </div>
-              <span class="text-xs muted tabular">${data.electronics.length} devices</span>
+              <span class="text-xs muted tabular">${devices.length} devices</span>
             </div>
 
             <div class="table-wrap">
@@ -1623,35 +2189,32 @@
                   <tr>
                     <th>Device</th>
                     <th>Charger Type</th>
-                    <th>Base List Status</th>
+                    <th>Status (${escapeHtml(trip.name)})</th>
                     <th style="text-align:right;">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  ${data.electronics.map(row => {
-                    const match = findMatchingPackingItem(row.device);
-                    const meta = match ? getStatusMeta(match.status) : null;
-                    const isUnknown = row.charger === '???' || !row.charger.trim();
-                    const options = CHARGER_OPTIONS.includes(row.charger) ? CHARGER_OPTIONS : [row.charger, ...CHARGER_OPTIONS];
+                  ${devices.map(row => {
+                    const meta = getStatusMeta(row.status);
+                    const isUnknown = row.charger === '???';
+                    const isSkipped = row.status === "Don't Need";
+                    const opts = CHARGER_OPTIONS.filter(Boolean);
+                    const options = opts.includes(row.charger) ? opts : [row.charger, ...opts];
                     return `
-                      <tr>
-                        <td style="font-weight:500;">${escapeHtml(row.device)}</td>
+                      <tr class="${isSkipped ? 'dimmed' : ''}">
+                        <td style="font-weight:500;">${escapeHtml(row.name)}</td>
                         <td>
                           <select data-elec-charger="${row.id}" class="select-input ${isUnknown ? 'st-dayof' : ''}">
                             ${options.map(opt => `<option value="${escapeHtml(opt)}" ${row.charger === opt ? 'selected' : ''}>${escapeHtml(opt)}</option>`).join('')}
                           </select>
                         </td>
                         <td>
-                          ${match ? `
-                            <button type="button" data-elec-toggle-item="${match.id}" title="Linked to ${escapeHtml(match.name)} in Base List. Click to toggle." class="status-pill ${meta.cls}">
-                              <span class="dot-sm" style="background-color:${meta.dot};"></span><span>${escapeHtml(meta.short)}</span>
-                            </button>
-                          ` : `
-                            <button type="button" data-elec-track="${escapeHtml(row.device)}" class="track-btn">+ Add to Base List</button>
-                          `}
+                          <button type="button" data-elec-toggle-item="${row.id}" title="Click to toggle packed status" class="status-pill ${meta.cls}">
+                            <span class="dot-sm" style="background-color:${meta.dot};"></span><span>${escapeHtml(meta.short)}</span>
+                          </button>
                         </td>
                         <td style="text-align:right;">
-                          <button type="button" data-elec-delete="${row.id}" class="pack-all-btn">Remove</button>
+                          <button type="button" data-elec-untrack="${row.id}" class="pack-all-btn" title="Remove charger tag (keeps item in Base List)">Remove</button>
                         </td>
                       </tr>
                     `;
@@ -1661,9 +2224,9 @@
             </div>
 
             <form id="addElecForm" class="elec-add-form">
-              <input id="newElecDevice" type="text" class="text-input" style="flex:1;" placeholder="Add device (e.g., Kindle, Curling Iron)..." />
+              <input id="newElecDevice" type="text" class="text-input" style="flex:1;" placeholder="Add device to Base List → Electronic (e.g., Kindle, Curling Iron)..." />
               <select id="newElecCharger" class="select-input">
-                ${CHARGER_OPTIONS.map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+                ${CHARGER_OPTIONS.filter(Boolean).map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
               </select>
               <button type="submit" class="btn btn-primary">Add Device</button>
             </form>
@@ -1675,35 +2238,30 @@
     }
 
     function bindElectronicsEvents() {
+      const trip = getActiveTrip();
+      const dismissBtn = document.getElementById('btnDismissMirrorNote');
+      if (dismissBtn) {
+        dismissBtn.addEventListener('click', () => { store.dismissedMirrorNote = true; saveStore(); render(); });
+      }
       document.querySelectorAll('[data-elec-charger]').forEach(sel => {
-        sel.addEventListener('change', () => {
-          const row = data.electronics.find(e => e.id === sel.dataset.elecCharger);
-          if (!row) return;
-          row.charger = sel.value; saveData(); render();
-        });
+        sel.addEventListener('change', () => { setItemCharger(sel.dataset.elecCharger, sel.value); saveStore(); render(); });
       });
       document.querySelectorAll('[data-elec-toggle-item]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const item = data.items.find(i => i.id === btn.dataset.elecToggleItem);
+          const item = getTripChecklistItems(trip).find(i => i.id === btn.dataset.elecToggleItem);
           if (!item) return;
-          item.status = item.status === 'Yes' ? 'Not Yet' : 'Yes'; saveData(); render();
+          setItemStatus(item.id, item.status === 'Yes' ? 'Not Yet' : 'Yes', trip);
+          saveStore(); render();
         });
       });
-      document.querySelectorAll('[data-elec-track]').forEach(btn => {
+      document.querySelectorAll('[data-elec-untrack]').forEach(btn => {
         btn.addEventListener('click', () => {
-          const name = btn.dataset.elecTrack;
-          data.items.push({ id: `base-${Date.now()}`, list: 'base', category: 'Electronic', name, status: 'Not Yet' });
-          saveData(); render(); showToast(`Added "${name}" to Base List → Electronic`);
-        });
-      });
-      document.querySelectorAll('[data-elec-delete]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const row = data.electronics.find(e => e.id === btn.dataset.elecDelete);
-          if (!row) return;
-          const prev = clone(data);
-          data.electronics = data.electronics.filter(e => e.id !== row.id);
-          saveData(); render();
-          showToast(`Removed "${row.device}"`, () => { data = prev; saveData(); render(); });
+          const item = store.baseTemplate.find(b => b.id === btn.dataset.elecUntrack);
+          if (!item) return;
+          const prev = clone(store);
+          item.charger = '';
+          saveStore(); render();
+          showToast(`Removed "${item.name}" from charger tracker`, () => { store = prev; saveStore(); render(); });
         });
       });
       const form = document.getElementById('addElecForm');
@@ -1713,8 +2271,11 @@
           const device = document.getElementById('newElecDevice').value.trim();
           const charger = document.getElementById('newElecCharger').value;
           if (!device) return;
-          data.electronics.push({ id: `elec-${Date.now()}`, device, charger });
-          saveData(); render(); showToast(`Added "${device}" (${charger})`);
+          const existing = store.baseTemplate.find(b => b.category === 'Electronic' && normalizeText(b.name) === normalizeText(device));
+          if (existing) existing.charger = charger;
+          else addItemToList('base', 'Electronic', device, 'Not Yet', charger, trip);
+          saveStore(); render();
+          showToast(`Added "${device}" (${charger}) to Base List → Electronic`);
         });
       }
     }
@@ -1726,8 +2287,188 @@
     }
     function closeModal() { document.getElementById('modalBackdrop').classList.add('hidden'); }
 
+    function openCreateTripModal() {
+      const tripOptions = store.trips.map(t => `<option value="${t.id}">Copy from "${escapeHtml(t.name)}"</option>`).join('');
+
+      openModal(`
+        <div class="modal-head">
+          <h3>Create New Trip</h3>
+          <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
+        </div>
+        <form id="createTripForm" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label class="field-label">Trip Name</label>
+            <input id="ntName" type="text" required class="text-input" style="width:100%;" placeholder="e.g., Miami Weekend, NYC Work Trip..." />
+          </div>
+          <div>
+            <label class="field-label">Destination (optional)</label>
+            <input id="ntDest" type="text" class="text-input" style="width:100%;" placeholder="e.g., Miami, FL" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label class="field-label">Start Date</label>
+              <input id="ntStart" type="date" class="text-input" style="width:100%;" />
+            </div>
+            <div>
+              <label class="field-label">End Date</label>
+              <input id="ntEnd" type="date" class="text-input" style="width:100%;" />
+            </div>
+          </div>
+          <div>
+            <label class="field-label">Starting Checklist</label>
+            <select id="ntSource" class="select-input" style="width:100%;">
+              <option value="fresh">Fresh Base List (all unchecked, keep Day-Of tags)</option>
+              ${tripOptions}
+            </select>
+          </div>
+          <label id="ntCopySpecificWrap" class="check-card hidden">
+            <input id="ntCopySpecific" type="checkbox" checked style="margin-top:2px;accent-color:var(--primary);" />
+            <span><strong style="display:block;">Also copy Trip Specific shoes/accessories</strong><span class="muted">Outfits always start custom &amp; fresh for the new trip's dates</span></span>
+          </label>
+          <p class="text-xs muted" style="margin:0;">Your new trip gets a blank, custom <strong>Outfits</strong> tab generated from your start &amp; end dates.</p>
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
+            <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Trip</button>
+          </div>
+        </form>
+      `);
+
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      document.getElementById('cancelModalBtn').onclick = closeModal;
+      const srcSel = document.getElementById('ntSource');
+      const copyWrap = document.getElementById('ntCopySpecificWrap');
+      srcSel.addEventListener('change', () => { copyWrap.classList.toggle('hidden', srcSel.value === 'fresh'); });
+      document.getElementById('ntName').focus();
+
+      document.getElementById('createTripForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('ntName').value.trim();
+        if (!name) return;
+        const destination = document.getElementById('ntDest').value.trim();
+        const startDate = document.getElementById('ntStart').value;
+        const endDate = document.getElementById('ntEnd').value;
+        const sourceId = srcSel.value;
+
+        const baseStatuses = {};
+        let tripItems = [];
+        const defaultDayOfNames = new Set(['sweatpants', 'sweatshirt', 'water bottle', 'laptop']);
+
+        if (sourceId === 'fresh') {
+          store.baseTemplate.forEach(b => {
+            baseStatuses[b.id] = defaultDayOfNames.has(b.name.toLowerCase()) ? 'Packing Day Of' : 'Not Yet';
+          });
+        } else {
+          const srcTrip = store.trips.find(t => t.id === sourceId);
+          store.baseTemplate.forEach(b => {
+            const st = srcTrip && srcTrip.baseStatuses[b.id];
+            if (st === "Don't Need" || st === 'Packing Day Of') baseStatuses[b.id] = st;
+            else baseStatuses[b.id] = 'Not Yet';
+          });
+          if (srcTrip && document.getElementById('ntCopySpecific').checked) {
+            tripItems = srcTrip.tripItems.map((it, idx) => ({
+              id: `trip-${Date.now()}-${idx}`,
+              category: it.category,
+              name: it.name,
+              status: it.status === "Don't Need" ? "Don't Need" : 'Not Yet'
+            }));
+          }
+        }
+
+        const newTrip = {
+          id: `trip-${Date.now()}`,
+          name, destination, startDate, endDate, baseStatuses, tripItems,
+          outfits: generateOutfitDaysFromDates(startDate, endDate)
+        };
+
+        store.trips.push(newTrip);
+        store.activeTripId = newTrip.id;
+        ui.statusFilter = 'all'; ui.outfitStatusFilter = 'all'; ui.categoryFilter = 'all'; ui.search = '';
+        saveStore(); closeModal(); render();
+        showToast(`Created trip "${name}" with custom Outfits tab`);
+      });
+    }
+
+    function openEditTripModal() {
+      const trip = getActiveTrip();
+      const canDelete = store.trips.length > 1;
+
+      openModal(`
+        <div class="modal-head">
+          <h3>Edit Trip</h3>
+          <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
+        </div>
+        <form id="editTripForm" style="display:flex;flex-direction:column;gap:12px;">
+          <div>
+            <label class="field-label">Trip Name</label>
+            <input id="etName" type="text" required class="text-input" style="width:100%;" value="${escapeHtml(trip.name)}" />
+          </div>
+          <div>
+            <label class="field-label">Destination</label>
+            <input id="etDest" type="text" class="text-input" style="width:100%;" value="${escapeHtml(trip.destination || '')}" placeholder="e.g., Austin, TX" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div>
+              <label class="field-label">Start Date</label>
+              <input id="etStart" type="date" class="text-input" style="width:100%;" value="${escapeHtml(trip.startDate || '')}" />
+            </div>
+            <div>
+              <label class="field-label">End Date</label>
+              <input id="etEnd" type="date" class="text-input" style="width:100%;" value="${escapeHtml(trip.endDate || '')}" />
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--card-border);">
+            <div style="display:flex;gap:6px;">
+              <button type="button" id="btnDupTrip" class="btn btn-secondary">Duplicate</button>
+              ${canDelete ? '<button type="button" id="btnDelTrip" class="btn btn-danger">Delete</button>' : ''}
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </div>
+        </form>
+      `);
+
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      document.getElementById('cancelModalBtn').onclick = closeModal;
+
+      document.getElementById('btnDupTrip').onclick = () => {
+        const copy = clone(trip);
+        copy.id = `trip-${Date.now()}`;
+        copy.name = `${trip.name} (Copy)`;
+        store.trips.push(copy);
+        store.activeTripId = copy.id;
+        saveStore(); closeModal(); render();
+        showToast(`Duplicated "${trip.name}"`);
+      };
+
+      const delBtn = document.getElementById('btnDelTrip');
+      if (delBtn) {
+        delBtn.onclick = () => {
+          const prev = clone(store);
+          const removedName = trip.name;
+          store.trips = store.trips.filter(t => t.id !== trip.id);
+          store.activeTripId = store.trips[0].id;
+          saveStore(); closeModal(); render();
+          showToast(`Deleted "${removedName}"`, () => { store = prev; saveStore(); render(); });
+        };
+      }
+
+      document.getElementById('editTripForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('etName').value.trim();
+        if (!name) return;
+        trip.name = name;
+        trip.destination = document.getElementById('etDest').value.trim();
+        trip.startDate = document.getElementById('etStart').value;
+        trip.endDate = document.getElementById('etEnd').value;
+        saveStore(); closeModal(); render();
+        showToast(`Updated "${name}"`);
+      });
+    }
+
     function openAddItemModal() {
-      const renderCatOptions = (list) => (list === 'base' ? data.baseCategories : data.tripCategories)
+      const renderCatOptions = (list) => (list === 'base' ? store.baseCategories : store.tripCategories)
         .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 
       openModal(`
@@ -1744,14 +2485,21 @@
             <div>
               <label class="field-label">List</label>
               <select id="mItemList" class="select-input" style="width:100%;">
-                <option value="trip" ${ui.listScope === 'trip' ? 'selected' : ''}>Trip Specific</option>
-                <option value="base" ${ui.listScope === 'base' ? 'selected' : ''}>Base List</option>
+                <option value="trip" ${ui.listScope !== 'base' ? 'selected' : ''}>Trip Specific (this trip)</option>
+                <option value="base" ${ui.listScope === 'base' ? 'selected' : ''}>Base List (all trips)</option>
               </select>
             </div>
             <div>
               <label class="field-label">Category</label>
               <select id="mItemCat" class="select-input" style="width:100%;">${renderCatOptions(ui.listScope === 'base' ? 'base' : 'trip')}</select>
             </div>
+          </div>
+          <div id="mChargerWrap" class="hidden">
+            <label class="field-label">Charger Type (optional — links to Electronics tab)</label>
+            <select id="mItemCharger" class="select-input" style="width:100%;">
+              <option value="">None / Not rechargeable</option>
+              ${CHARGER_OPTIONS.filter(Boolean).map(opt => `<option value="${escapeHtml(opt)}">${escapeHtml(opt)}</option>`).join('')}
+            </select>
           </div>
           <div>
             <label class="field-label">Initial Status</label>
@@ -1763,7 +2511,8 @@
               <option value="Don't Need">Don't Need</option>
             </select>
           </div>
-          <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:6px;">
+          <p class="text-xs muted" style="margin:0;">Adding trip-specific outfits or clothes? Add them directly in the <strong>Outfits</strong> tab!</p>
+          <div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px;">
             <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
             <button type="submit" class="btn btn-primary">Add Item</button>
           </div>
@@ -1774,7 +2523,13 @@
       document.getElementById('cancelModalBtn').onclick = closeModal;
       const listSel = document.getElementById('mItemList');
       const catSel = document.getElementById('mItemCat');
-      listSel.addEventListener('change', () => { catSel.innerHTML = renderCatOptions(listSel.value); });
+      const chargerWrap = document.getElementById('mChargerWrap');
+      const syncChargerVis = () => {
+        chargerWrap.classList.toggle('hidden', !(listSel.value === 'base' && catSel.value === 'Electronic'));
+      };
+      listSel.addEventListener('change', () => { catSel.innerHTML = renderCatOptions(listSel.value); syncChargerVis(); });
+      catSel.addEventListener('change', syncChargerVis);
+      syncChargerVis();
       document.getElementById('mItemName').focus();
 
       document.getElementById('modalAddItemForm').addEventListener('submit', (e) => {
@@ -1784,19 +2539,21 @@
         const list = listSel.value;
         const category = catSel.value;
         const status = document.getElementById('mItemStatus').value;
-        data.items.push({ id: `${list}-${Date.now()}`, list, category, name, status });
-        saveData(); closeModal(); ui.activeTab = 'checklist'; render();
+        const charger = (list === 'base' && category === 'Electronic') ? document.getElementById('mItemCharger').value : '';
+        addItemToList(list, category, name, status, charger);
+        saveStore(); closeModal(); ui.activeTab = 'checklist'; render();
         showToast(`Added "${name}" to ${list === 'base' ? 'Base List' : 'Trip Specific'} → ${category}`);
       });
     }
 
-    function openNewTripModal() {
+    function openResetTripModal() {
+      const trip = getActiveTrip();
       openModal(`
         <div class="modal-head">
-          <h3>Start a New Trip</h3>
+          <h3>Reset "${escapeHtml(trip.name)}"</h3>
           <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
         </div>
-        <p class="text-xs muted" style="margin:0;">Reuse your packing list cleanly for your next trip without losing your master Base List items.</p>
+        <p class="text-xs muted" style="margin:0;">Reset packing statuses on this trip without affecting your other trips or Base List template.</p>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <label class="check-card">
             <input id="optKeepDayOf" type="checkbox" checked style="margin-top:2px;accent-color:var(--primary);" />
@@ -1804,70 +2561,93 @@
           </label>
           <label class="check-card">
             <input id="optKeepDontNeed" type="checkbox" checked style="margin-top:2px;accent-color:var(--primary);" />
-            <span><strong style="display:block;">Keep "Don't Need" selections</strong><span class="muted">Uncheck if you want to reconsider every skipped item</span></span>
+            <span><strong style="display:block;">Keep "Don't Need" selections</strong><span class="muted">Uncheck to reconsider every skipped item</span></span>
           </label>
           <label class="check-card">
             <input id="optClearTripSpecific" type="checkbox" style="margin-top:2px;accent-color:var(--primary);" />
-            <span><strong style="display:block;">Clear Trip Specific items &amp; Outfits</strong><span class="muted">Start fresh on trip-specific clothes/outfits while keeping Base List</span></span>
+            <span><strong style="display:block;">Clear Trip Specific items &amp; Outfits</strong><span class="muted">Wipes trip-specific items and outfit pieces for this trip only</span></span>
           </label>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:6px;">
-          <button type="button" id="btnRestoreSheet" class="text-xs muted" style="text-decoration:underline;cursor:pointer;">Restore original sheet</button>
+          <button type="button" id="btnRestoreDefaults" class="text-xs muted" style="text-decoration:underline;cursor:pointer;">Restore cleaned defaults</button>
           <div style="display:flex;gap:8px;">
             <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
-            <button type="button" id="confirmNewTripBtn" class="btn btn-primary">Reset Checkboxes</button>
+            <button type="button" id="confirmResetBtn" class="btn btn-primary">Reset Trip</button>
           </div>
         </div>
       `);
 
       document.getElementById('closeModalBtn').onclick = closeModal;
       document.getElementById('cancelModalBtn').onclick = closeModal;
-      document.getElementById('btnRestoreSheet').onclick = () => {
-        const prev = clone(data);
-        data = clone(INITIAL_DATA);
-        saveData(); closeModal(); render();
-        showToast('Restored original Google Sheet data', () => { data = prev; saveData(); render(); });
+      document.getElementById('btnRestoreDefaults').onclick = () => {
+        const prev = clone(store);
+        store = buildInitialStore();
+        saveStore(); closeModal(); render();
+        showToast('Restored cleaned default data', () => { store = prev; saveStore(); render(); });
       };
-      document.getElementById('confirmNewTripBtn').onclick = () => {
+      document.getElementById('confirmResetBtn').onclick = () => {
         const keepDayOf = document.getElementById('optKeepDayOf').checked;
         const keepDontNeed = document.getElementById('optKeepDontNeed').checked;
         const clearTrip = document.getElementById('optClearTripSpecific').checked;
-        const prev = clone(data);
+        const prev = clone(store);
+
+        const resetStatus = (s) => {
+          if (s === 'Yes') return 'Not Yet';
+          if (s === 'Packing Day Of' && !keepDayOf) return 'Not Yet';
+          if (s === "Don't Need" && !keepDontNeed) return 'Not Yet';
+          return s;
+        };
+
         if (clearTrip) {
-          data.items = data.items.filter(i => i.list === 'base');
-          data.outfits = data.outfits.map(d => ({ ...d, daytime: [], nighttime: [] }));
+          trip.tripItems = [];
+          trip.outfits = trip.outfits.map(c => c.type === 'section' ? { ...c, items: [] } : { ...c, daytime: [], nighttime: [] });
+        } else {
+          getAllOutfitPieces(trip).forEach(e => { e.piece.status = resetStatus(e.piece.status); });
         }
-        data.items.forEach(item => {
-          if (item.status === 'Yes') item.status = 'Not Yet';
-          else if (item.status === 'Packing Day Of' && !keepDayOf) item.status = 'Not Yet';
-          else if (item.status === "Don't Need" && !keepDontNeed) item.status = 'Not Yet';
+
+        store.baseTemplate.forEach(b => {
+          const cur = Object.prototype.hasOwnProperty.call(trip.baseStatuses, b.id) ? trip.baseStatuses[b.id] : 'Not Yet';
+          trip.baseStatuses[b.id] = resetStatus(cur);
         });
-        saveData(); closeModal(); render();
-        showToast('Reset list for a new trip', () => { data = prev; saveData(); render(); });
+        trip.tripItems.forEach(t => { t.status = resetStatus(t.status); });
+
+        saveStore(); closeModal(); render();
+        showToast(`Reset "${trip.name}"`, () => { store = prev; saveStore(); render(); });
       };
     }
 
     function openExportModal() {
+      const trip = getActiveTrip();
+      const allItems = getTripChecklistItems(trip);
+      const customOutfits = getUniqueOutfitEntries(trip).filter(u => !u.linked);
+
       openModal(`
         <div class="modal-head">
-          <h3>Export Packing Tracker</h3>
+          <h3>Backup &amp; Export</h3>
           <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
         </div>
-        <p class="text-xs muted" style="margin:0;">Download your updated checklist as a CSV (ready for Google Sheets) or a full JSON backup.</p>
+        <p class="text-xs muted" style="margin:0;">Export the active trip (including Outfits) to CSV for Google Sheets, or save/restore a full multi-trip backup.</p>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <button type="button" id="dlCsvBtn" class="export-card">
             <div>
-              <div class="text-xs" style="font-weight:600;">Download Checklist CSV</div>
-              <div class="text-xs muted">List, Category, Item, Status (${data.items.length} rows)</div>
+              <div class="text-xs" style="font-weight:600;">Export "${escapeHtml(trip.name)}" CSV</div>
+              <div class="text-xs muted">Base List, Trip Specific &amp; Custom Outfits (${allItems.length + customOutfits.length} rows)</div>
             </div>
             <span class="link-btn">.csv</span>
           </button>
           <button type="button" id="dlJsonBtn" class="export-card">
             <div>
-              <div class="text-xs" style="font-weight:600;">Download Full Backup JSON</div>
-              <div class="text-xs muted">Includes Base List, Trip Specific, Outfits &amp; Electronics</div>
+              <div class="text-xs" style="font-weight:600;">Download Full Multi-Trip Backup</div>
+              <div class="text-xs muted">All ${store.trips.length} trip${store.trips.length > 1 ? 's' : ''} &amp; Base List template</div>
             </div>
             <span class="link-btn">.json</span>
+          </button>
+          <button type="button" id="ulJsonBtn" class="export-card">
+            <div>
+              <div class="text-xs" style="font-weight:600;">Import Backup JSON</div>
+              <div class="text-xs muted">Load a previously saved multi-trip backup file</div>
+            </div>
+            <span class="link-btn">Import</span>
           </button>
         </div>
         <div style="display:flex;justify-content:flex-end;padding-top:4px;">
@@ -1877,17 +2657,23 @@
 
       document.getElementById('closeModalBtn').onclick = closeModal;
       document.getElementById('cancelModalBtn').onclick = closeModal;
+
       document.getElementById('dlCsvBtn').onclick = () => {
         const csvEscape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-        const rows = [['List', 'Category', 'Item', 'Packed']];
-        data.items.forEach(i => rows.push([i.list === 'base' ? 'Base List' : 'Trip Specific', i.category, i.name, i.status]));
-        triggerDownload('packing-list.csv', rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8;');
-        closeModal(); showToast('Downloaded packing-list.csv');
+        const rows = [['Trip', 'List', 'Category', 'Item', 'Charger', 'Packed']];
+        allItems.forEach(i => rows.push([trip.name, i.list === 'base' ? 'Base List' : 'Trip Specific', i.category, i.name, i.charger || '', i.status]));
+        customOutfits.forEach(o => rows.push([trip.name, 'Outfits', 'Custom Outfit Piece', o.name, '', o.status]));
+        const safeName = trip.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'packing-list';
+        triggerDownload(`${safeName}.csv`, rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8;');
+        closeModal(); showToast(`Downloaded ${safeName}.csv`);
       };
+
       document.getElementById('dlJsonBtn').onclick = () => {
-        triggerDownload('packing-list-backup.json', JSON.stringify(data, null, 2), 'application/json');
-        closeModal(); showToast('Downloaded packing-list-backup.json');
+        triggerDownload('packing-tracker-backup.json', JSON.stringify(store, null, 2), 'application/json');
+        closeModal(); showToast('Downloaded packing-tracker-backup.json');
       };
+
+      document.getElementById('ulJsonBtn').onclick = () => { document.getElementById('importJsonInput').click(); };
     }
 
     function triggerDownload(filename, content, mime) {
@@ -1899,24 +2685,36 @@
       URL.revokeObjectURL(url);
     }
 
+    document.getElementById('importJsonInput').addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!parsed || !Array.isArray(parsed.trips) || !Array.isArray(parsed.baseTemplate)) {
+            showToast('Invalid backup file format'); return;
+          }
+          const prev = clone(store);
+          store = parsed;
+          saveStore(); closeModal(); render();
+          showToast(`Imported ${store.trips.length} trip${store.trips.length > 1 ? 's' : ''}`, () => { store = prev; saveStore(); render(); });
+        } catch (err) {
+          showToast('Could not parse JSON file');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+
     // Global Events
     document.querySelectorAll('.main-tab').forEach(btn => {
       btn.addEventListener('click', () => { ui.activeTab = btn.dataset.tab; render(); });
     });
+    document.getElementById('btnEditTrip').addEventListener('click', openEditTripModal);
     document.getElementById('btnAddItemGlobal').addEventListener('click', openAddItemModal);
-    document.getElementById('btnNewTrip').addEventListener('click', openNewTripModal);
+    document.getElementById('btnResetTrip').addEventListener('click', openResetTripModal);
     document.getElementById('btnExport').addEventListener('click', openExportModal);
-
-    document.getElementById('tripTitle').addEventListener('blur', (e) => {
-      const val = e.target.textContent.trim();
-      if (val) { data.tripTitle = val; saveData(); } else { e.target.textContent = data.tripTitle; }
-    });
-    document.getElementById('tripTitle').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
-    document.getElementById('tripSubtitle').addEventListener('blur', (e) => {
-      const val = e.target.textContent.trim();
-      if (val) { data.tripSubtitle = val; saveData(); } else { e.target.textContent = data.tripSubtitle; }
-    });
-    document.getElementById('tripSubtitle').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } });
 
     document.addEventListener('click', () => closePopover());
     document.getElementById('modalBackdrop').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
