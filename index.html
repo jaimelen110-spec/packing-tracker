@@ -482,14 +482,140 @@
     .muted { color: var(--muted-foreground); }
     .text-xs { font-size: 12px; }
     .tabular { font-variant-numeric: tabular-nums; }
+
+    /* Home Navigation Pill & Trips Homepage */
+    .trip-home-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 13px; border-radius: 12px; font-size: 12px; font-weight: 600;
+      border: 1px solid var(--border); background-color: var(--card); color: var(--foreground);
+      cursor: pointer; flex-shrink: 0;
+      transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+    }
+    .trip-home-pill:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background-color: color-mix(in srgb, var(--primary) 6%, var(--card));
+    }
+
+    .home-section { display: flex; flex-direction: column; gap: 12px; }
+    .home-section-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .home-section-title {
+      margin: 0; font-size: 13px; font-weight: 650; letter-spacing: 0.01em;
+      color: var(--foreground); display: inline-flex; align-items: center; gap: 8px;
+    }
+    .home-count-pill {
+      font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px;
+      background-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+      color: var(--muted-foreground); font-variant-numeric: tabular-nums;
+    }
+
+    .trip-card {
+      border-radius: 16px; border: 1px solid var(--border); background-color: var(--card);
+      display: flex; flex-direction: column; overflow: hidden;
+      transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+    }
+    .trip-card:hover {
+      border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+      box-shadow: 0 8px 22px -12px rgba(0, 0, 0, 0.18);
+    }
+    .trip-card.is-past { opacity: 0.88; }
+    .trip-card.is-past:hover { opacity: 1; }
+    .trip-card-body {
+      padding: 16px 18px 14px; display: flex; flex-direction: column; gap: 12px;
+      cursor: pointer; flex: 1;
+    }
+    .trip-card-top {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+    }
+    .trip-card-title {
+      margin: 0; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; color: var(--foreground);
+      line-height: 1.3;
+    }
+    .trip-card-sub {
+      margin: 3px 0 0; font-size: 12px; color: var(--muted-foreground);
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .trip-timing-badge {
+      font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 999px; flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .trip-timing-badge.upcoming {
+      background-color: color-mix(in srgb, var(--primary) 13%, transparent); color: var(--primary);
+    }
+    .trip-timing-badge.current {
+      background-color: color-mix(in srgb, var(--success) 15%, transparent); color: var(--success);
+    }
+    .trip-timing-badge.past {
+      background-color: color-mix(in srgb, var(--foreground) 8%, transparent); color: var(--muted-foreground);
+    }
+    .trip-timing-badge.unscheduled {
+      background-color: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning);
+    }
+    .trip-card-progress-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 12px; font-variant-numeric: tabular-nums;
+    }
+    .trip-card-pct { font-weight: 700; color: var(--foreground); }
+    .trip-card-stats {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      font-size: 12px; color: var(--muted-foreground); font-variant-numeric: tabular-nums;
+    }
+    .trip-card-footer {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 10px 14px; border-top: 1px solid var(--card-border);
+      background-color: color-mix(in srgb, var(--foreground) 2%, var(--card));
+    }
+    .trip-card-actions { display: flex; align-items: center; gap: 4px; }
+    .trip-icon-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 9px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      color: var(--muted-foreground); cursor: pointer;
+      transition: background-color 130ms ease, color 130ms ease;
+    }
+    .trip-icon-btn:hover {
+      background-color: color-mix(in srgb, var(--foreground) 7%, transparent);
+      color: var(--foreground);
+    }
+    .trip-icon-btn.danger:hover {
+      background-color: color-mix(in srgb, var(--error) 14%, transparent);
+      color: var(--error);
+    }
+
+    .home-empty-card {
+      border-radius: 18px; border: 1px dashed var(--border); background-color: var(--card);
+      padding: 44px 24px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+    }
+    .home-empty-icon {
+      width: 52px; height: 52px; border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background-color: color-mix(in srgb, var(--primary) 12%, var(--card));
+      border: 1px solid var(--border); color: var(--primary);
+    }
+    .base-template-banner {
+      border-radius: 16px; border: 1px solid var(--border); background-color: var(--card);
+      padding: 16px 18px; display: flex; flex-direction: column; gap: 10px;
+    }
+    .base-template-top {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    }
+    .base-cat-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .base-cat-pill {
+      font-size: 12px; padding: 3px 9px; border-radius: 999px;
+      border: 1px solid var(--border); background-color: var(--background);
+      color: var(--muted-foreground); font-variant-numeric: tabular-nums;
+    }
+    .base-cat-pill strong { color: var(--foreground); font-weight: 600; }
   </style>
 </head>
 <body>
   <div id="app" class="container">
-    <!-- Multi-Trip Switcher Bar -->
+    <!-- Multi-Trip Switcher Bar (shown when viewing a trip) -->
     <section aria-label="Upcoming Trips" class="trips-bar" id="tripsBar"></section>
 
-    <!-- Active Trip Header -->
+    <!-- Header (adapts between Trips Homepage and Active Trip) -->
     <header class="app-header">
       <div class="brand-row">
         <div class="brand-icon">
@@ -518,6 +644,10 @@
         <button id="btnStandaloneTheme" type="button" class="btn btn-secondary hidden" title="Toggle light/dark mode">
           <span id="themeBtnLabel">Dark Mode</span>
         </button>
+        <button id="btnNewTripHeader" type="button" class="btn btn-primary hidden">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          New Trip
+        </button>
         <button id="btnAddItemGlobal" type="button" class="btn btn-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
           Add Item
@@ -533,8 +663,8 @@
       </div>
     </header>
 
-    <!-- Primary Tab Navigation -->
-    <nav class="nav-bar">
+    <!-- Primary Tab Navigation (shown when viewing a trip) -->
+    <nav id="tripNavBar" class="nav-bar">
       <div class="tab-group" role="tablist">
         <button data-tab="checklist" role="tab" class="main-tab">
           <span>Packing Checklist</span>
@@ -941,7 +1071,7 @@
         const raw = localStorage.getItem(STORAGE_KEY_V4);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (parsed && Array.isArray(parsed.trips) && parsed.trips.length > 0 && Array.isArray(parsed.baseTemplate)) {
+          if (parsed && Array.isArray(parsed.trips) && Array.isArray(parsed.baseTemplate)) {
             return parsed;
           }
         }
@@ -951,6 +1081,7 @@
 
     let store = loadStore();
     let ui = {
+      view: 'home', // 'home' | 'trip'
       activeTab: 'checklist',
       listScope: 'all',
       statusFilter: 'all',
@@ -965,9 +1096,83 @@
     };
 
     function getActiveTrip() {
+      if (!store.trips.length) {
+        store.activeTripId = null;
+        return null;
+      }
       let trip = store.trips.find(t => t.id === store.activeTripId);
       if (!trip) { trip = store.trips[0]; store.activeTripId = trip.id; }
       return trip;
+    }
+
+    function openTrip(tripId) {
+      const trip = store.trips.find(t => t.id === tripId);
+      if (!trip) return;
+      store.activeTripId = trip.id;
+      ui.view = 'trip';
+      ui.activeTab = 'checklist';
+      ui.categoryFilter = 'all';
+      ui.statusFilter = 'all';
+      ui.outfitStatusFilter = 'all';
+      ui.search = '';
+      saveStore(false);
+      render();
+    }
+
+    function goHome() {
+      ui.view = 'home';
+      render();
+    }
+
+    function getTripTiming(trip) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = parseIsoLocal(trip.startDate);
+      const end = parseIsoLocal(trip.endDate) || start;
+      if (!start && !end) return { kind: 'unscheduled', label: 'Dates TBD' };
+      if (end && end < today) return { kind: 'past', label: 'Past' };
+      if (start && start <= today && end && end >= today) return { kind: 'current', label: 'In Progress' };
+      return { kind: 'upcoming', label: 'Upcoming' };
+    }
+
+    function deleteTripById(tripId) {
+      const target = store.trips.find(t => t.id === tripId);
+      if (!target) return;
+      const prev = clone(store);
+      const prevView = ui.view;
+      const removedName = target.name;
+      store.trips = store.trips.filter(t => t.id !== tripId);
+      if (!store.trips.length) {
+        store.activeTripId = null;
+        ui.view = 'home';
+      } else if (store.activeTripId === tripId) {
+        store.activeTripId = store.trips[0].id;
+        ui.view = 'home';
+      }
+      saveStore();
+      closeModal();
+      render();
+      showToast(`Deleted "${removedName}"`, () => {
+        store = prev;
+        ui.view = prevView;
+        saveStore();
+        render();
+      }, 7000);
+    }
+
+    function duplicateTripById(tripId, openAfter = false) {
+      const target = store.trips.find(t => t.id === tripId);
+      if (!target) return;
+      const copy = clone(target);
+      copy.id = `trip-${Date.now()}`;
+      copy.name = `${target.name} (Copy)`;
+      store.trips.push(copy);
+      store.activeTripId = copy.id;
+      if (openAfter) ui.view = 'trip';
+      saveStore();
+      closeModal();
+      render();
+      showToast(`Duplicated "${target.name}"`);
     }
 
     function normalizeText(s) {
@@ -1149,7 +1354,7 @@
       return STATUSES.find(s => s.value === val) || STATUSES[1];
     }
 
-    function showToast(message, undoFn = null) {
+    function showToast(message, undoFn = null, durationMs = 4500) {
       const toast = document.getElementById('toast');
       const msgEl = document.getElementById('toastMsg');
       const undoBtn = document.getElementById('toastUndo');
@@ -1163,7 +1368,7 @@
       }
       toast.classList.remove('hidden');
       clearTimeout(ui.toastTimer);
-      ui.toastTimer = setTimeout(() => toast.classList.add('hidden'), 4500);
+      ui.toastTimer = setTimeout(() => toast.classList.add('hidden'), durationMs);
     }
 
     function parseIsoLocal(iso) {
@@ -1249,9 +1454,15 @@
     // Render Trips Bar + Chrome
     function renderTripsBar() {
       const bar = document.getElementById('tripsBar');
-      const activeId = getActiveTrip().id;
+      const activeTrip = getActiveTrip();
+      const activeId = activeTrip ? activeTrip.id : null;
 
-      bar.innerHTML = store.trips.map(tr => {
+      bar.innerHTML = `
+        <button id="btnGoHome" type="button" class="trip-home-pill" title="Back to all trips">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span>All Trips</span>
+        </button>
+      ` + store.trips.map(tr => {
         const st = computeFullTripStats(tr);
         const active = tr.id === activeId;
         const dateStr = formatDateRange(tr.startDate, tr.endDate);
@@ -1271,16 +1482,13 @@
         </button>
       `;
 
+      const homeBtn = document.getElementById('btnGoHome');
+      if (homeBtn) homeBtn.addEventListener('click', goHome);
+
       bar.querySelectorAll('[data-select-trip]').forEach(btn => {
         btn.addEventListener('click', () => {
-          if (store.activeTripId === btn.dataset.selectTrip) return;
-          store.activeTripId = btn.dataset.selectTrip;
-          ui.categoryFilter = 'all';
-          ui.statusFilter = 'all';
-          ui.outfitStatusFilter = 'all';
-          ui.search = '';
-          saveStore(false);
-          render();
+          if (store.activeTripId === btn.dataset.selectTrip && ui.view === 'trip') return;
+          openTrip(btn.dataset.selectTrip);
         });
       });
 
@@ -1289,8 +1497,35 @@
     }
 
     function renderChrome() {
-      renderTripsBar();
       const trip = getActiveTrip();
+      const isHome = ui.view === 'home' || !trip;
+      if (isHome) ui.view = 'home';
+
+      const tripsBarEl = document.getElementById('tripsBar');
+      const tripNavBarEl = document.getElementById('tripNavBar');
+      const subtitleEl = document.getElementById('tripSubtitle');
+      const editTripBtn = document.getElementById('btnEditTrip');
+      const newTripHeaderBtn = document.getElementById('btnNewTripHeader');
+      const addItemBtn = document.getElementById('btnAddItemGlobal');
+      const resetTripBtn = document.getElementById('btnResetTrip');
+
+      tripsBarEl.classList.toggle('hidden', isHome);
+      tripNavBarEl.classList.toggle('hidden', isHome);
+      subtitleEl.classList.toggle('hidden', isHome);
+      editTripBtn.classList.toggle('hidden', isHome);
+      newTripHeaderBtn.classList.toggle('hidden', !isHome);
+      addItemBtn.classList.toggle('hidden', isHome);
+      resetTripBtn.classList.toggle('hidden', isHome);
+
+      if (isHome) {
+        const n = store.trips.length;
+        document.getElementById('tripTitle').textContent = 'Packing Tracker';
+        document.getElementById('tripMetaLeft').textContent =
+          `${n === 0 ? 'No trips yet' : `${n} trip${n === 1 ? '' : 's'}`} · Base List: ${store.baseTemplate.length} reusable items`;
+        return;
+      }
+
+      renderTripsBar();
       const checklistStats = computeStats(getTripChecklistItems(trip));
       const outfitStats = computeStats(getUniqueOutfitEntries(trip));
       const fullStats = computeFullTripStats(trip);
@@ -1299,8 +1534,8 @@
 
       document.getElementById('tripTitle').textContent = trip.name;
       const dateRange = formatDateRange(trip.startDate, trip.endDate);
-      document.getElementById('tripSubtitle').textContent = trip.destination ? `${trip.destination} · ${dateRange}` : dateRange;
-      document.getElementById('tripMetaLeft').textContent = `${store.trips.length} trip${store.trips.length > 1 ? 's' : ''} · ${fullStats.pct}% overall packed`;
+      subtitleEl.textContent = trip.destination ? `${trip.destination} · ${dateRange}` : dateRange;
+      document.getElementById('tripMetaLeft').textContent = `${store.trips.length} trip${store.trips.length === 1 ? '' : 's'} · ${fullStats.pct}% overall packed`;
 
       document.querySelectorAll('.main-tab').forEach(btn => {
         const active = btn.dataset.tab === ui.activeTab;
@@ -1338,9 +1573,201 @@
       closePopover();
       renderChrome();
       const container = document.getElementById('viewContainer');
+      if (ui.view === 'home' || !getActiveTrip()) {
+        renderHomeView(container);
+        return;
+      }
       if (ui.activeTab === 'checklist') renderChecklistView(container);
       else if (ui.activeTab === 'outfits') renderOutfitsView(container);
       else renderElectronicsView(container);
+    }
+
+    // VIEW 0: TRIPS HOMEPAGE
+    function renderHomeView(container) {
+      const renderTripCard = (tr) => {
+        const st = computeFullTripStats(tr);
+        const outfitCount = getUniqueOutfitEntries(tr).length;
+        const timing = getTripTiming(tr);
+        const dateStr = formatDateRange(tr.startDate, tr.endDate);
+        const yesPct = st.required ? (st.yes / st.required) * 100 : 100;
+        const dayOfPct = st.required ? (st.dayOf / st.required) * 100 : 0;
+
+        return `
+          <article class="trip-card ${timing.kind === 'past' ? 'is-past' : ''}">
+            <div class="trip-card-body" data-home-open="${tr.id}">
+              <div class="trip-card-top">
+                <div style="min-width:0;">
+                  <h2 class="trip-card-title">${escapeHtml(tr.name)}</h2>
+                  <p class="trip-card-sub">
+                    <span>${escapeHtml(tr.destination ? `${tr.destination} · ${dateStr}` : dateStr)}</span>
+                  </p>
+                </div>
+                <span class="trip-timing-badge ${timing.kind}">${timing.label}</span>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:6px;">
+                <div class="trip-card-progress-row">
+                  <span class="trip-card-pct">${st.pct}% packed</span>
+                  <span class="muted">${st.remaining > 0 ? `${st.remaining} left` : 'All set'}</span>
+                </div>
+                <div class="progress-track" style="height:7px;">
+                  <div class="progress-seg" style="width:${yesPct.toFixed(1)}%;background-color:var(--success);"></div>
+                  <div class="progress-seg" style="width:${dayOfPct.toFixed(1)}%;background-color:var(--warning);"></div>
+                </div>
+              </div>
+
+              <div class="trip-card-stats">
+                <span class="stat-item"><span class="dot-sm" style="background:var(--success);"></span><strong>${st.yes}</strong> packed</span>
+                <span class="stat-item"><span class="dot-sm" style="background:var(--error);"></span><strong>${st.notYet}</strong> to pack</span>
+                <span class="stat-item"><span class="dot-sm" style="background:var(--warning);"></span><strong>${st.dayOf}</strong> day-of</span>
+                ${outfitCount > 0 ? `<span class="stat-item"><strong>${outfitCount}</strong> outfit${outfitCount === 1 ? '' : 's'}</span>` : ''}
+              </div>
+            </div>
+
+            <div class="trip-card-footer">
+              <button type="button" data-home-open="${tr.id}" class="btn btn-secondary" style="padding:5px 11px;">Open Trip</button>
+              <div class="trip-card-actions">
+                <button type="button" data-home-edit="${tr.id}" class="trip-icon-btn" title="Edit trip details">Edit</button>
+                <button type="button" data-home-dup="${tr.id}" class="trip-icon-btn" title="Duplicate trip">Copy</button>
+                <button type="button" data-home-del="${tr.id}" class="trip-icon-btn danger" title="Delete trip">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </article>
+        `;
+      };
+
+      const activeAndUpcoming = [];
+      const pastTrips = [];
+      store.trips.forEach(tr => {
+        const timing = getTripTiming(tr);
+        if (timing.kind === 'past') pastTrips.push(tr);
+        else activeAndUpcoming.push(tr);
+      });
+
+      const dateVal = (iso, fallback) => {
+        const d = parseIsoLocal(iso);
+        return d ? d.getTime() : fallback;
+      };
+      activeAndUpcoming.sort((a, b) => dateVal(a.startDate, Infinity) - dateVal(b.startDate, Infinity));
+      pastTrips.sort((a, b) => dateVal(b.endDate || b.startDate, 0) - dateVal(a.endDate || a.startDate, 0));
+
+      let tripsHtml = '';
+      if (store.trips.length === 0) {
+        tripsHtml = `
+          <div class="home-empty-card">
+            <div class="home-empty-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="7" width="14" height="13" rx="2.5"></rect>
+                <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path>
+                <path d="M12 11v5M9.5 13.5h5"></path>
+              </svg>
+            </div>
+            <div style="max-width:420px;">
+              <h2 style="margin:0;font-size:17px;font-weight:650;">No trips planned yet</h2>
+              <p class="text-xs muted" style="margin:6px 0 0;line-height:1.5;">
+                Start a fresh packing list anytime. Your reusable <strong>Base List (${store.baseTemplate.length} items)</strong> is saved and automatically loaded into every new trip.
+              </p>
+            </div>
+            <button type="button" id="btnHomeFirstTrip" class="btn btn-primary" style="margin-top:4px;padding:9px 16px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              Create Your First Trip
+            </button>
+          </div>
+        `;
+      } else {
+        if (activeAndUpcoming.length > 0) {
+          tripsHtml += `
+            <section class="home-section">
+              <div class="home-section-head">
+                <h2 class="home-section-title">
+                  <span>Upcoming &amp; Active Trips</span>
+                  <span class="home-count-pill">${activeAndUpcoming.length}</span>
+                </h2>
+              </div>
+              <div class="grid-3">${activeAndUpcoming.map(renderTripCard).join('')}</div>
+            </section>
+          `;
+        }
+        if (pastTrips.length > 0) {
+          tripsHtml += `
+            <section class="home-section">
+              <div class="home-section-head">
+                <h2 class="home-section-title">
+                  <span>Past Trips</span>
+                  <span class="home-count-pill">${pastTrips.length}</span>
+                </h2>
+                ${pastTrips.length >= 2 ? `<button type="button" id="btnClearPastTrips" class="trip-icon-btn danger">Clear all past trips</button>` : ''}
+              </div>
+              <div class="grid-3">${pastTrips.map(renderTripCard).join('')}</div>
+            </section>
+          `;
+        }
+      }
+
+      const catCounts = new Map();
+      store.baseCategories.forEach(c => catCounts.set(c, 0));
+      store.baseTemplate.forEach(b => catCounts.set(b.category, (catCounts.get(b.category) || 0) + 1));
+      const catPillsHtml = Array.from(catCounts.entries())
+        .filter(([, count]) => count > 0)
+        .map(([cat, count]) => `<span class="base-cat-pill">${escapeHtml(cat)} <strong>${count}</strong></span>`)
+        .join('');
+
+      container.innerHTML = `
+        <div class="stack" style="gap:20px;">
+          ${tripsHtml}
+
+          <section class="base-template-banner">
+            <div class="base-template-top">
+              <div>
+                <div style="font-size:13px;font-weight:650;">Reusable Base List Template</div>
+                <div class="text-xs muted" style="margin-top:2px;">
+                  ${store.baseTemplate.length} essentials automatically included in every new trip — deleting old trips never removes these.
+                </div>
+              </div>
+              <button type="button" id="btnHomeNewTripSecondary" class="btn btn-secondary">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                New Trip from Base List
+              </button>
+            </div>
+            <div class="base-cat-pills">${catPillsHtml}</div>
+          </section>
+        </div>
+      `;
+
+      const firstBtn = document.getElementById('btnHomeFirstTrip');
+      if (firstBtn) firstBtn.addEventListener('click', openCreateTripModal);
+      const secNewBtn = document.getElementById('btnHomeNewTripSecondary');
+      if (secNewBtn) secNewBtn.addEventListener('click', openCreateTripModal);
+
+      container.querySelectorAll('[data-home-open]').forEach(el => {
+        el.addEventListener('click', () => openTrip(el.dataset.homeOpen));
+      });
+      container.querySelectorAll('[data-home-edit]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); openEditTripModal(btn.dataset.homeEdit); });
+      });
+      container.querySelectorAll('[data-home-dup]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); duplicateTripById(btn.dataset.homeDup, false); });
+      });
+      container.querySelectorAll('[data-home-del]').forEach(btn => {
+        btn.addEventListener('click', (e) => { e.stopPropagation(); deleteTripById(btn.dataset.homeDel); });
+      });
+
+      const clearPastBtn = document.getElementById('btnClearPastTrips');
+      if (clearPastBtn) {
+        clearPastBtn.addEventListener('click', () => {
+          const prev = clone(store);
+          const pastIds = new Set(pastTrips.map(t => t.id));
+          store.trips = store.trips.filter(t => !pastIds.has(t.id));
+          if (!store.trips.length) store.activeTripId = null;
+          else if (!store.trips.some(t => t.id === store.activeTripId)) store.activeTripId = store.trips[0].id;
+          saveStore();
+          render();
+          showToast(`Cleared ${pastIds.size} past trips`, () => { store = prev; saveStore(); render(); }, 7000);
+        });
+      }
     }
 
     // VIEW 1: PACKING CHECKLIST
@@ -2382,15 +2809,19 @@
 
         store.trips.push(newTrip);
         store.activeTripId = newTrip.id;
+        ui.view = 'trip';
+        ui.activeTab = 'checklist';
         ui.statusFilter = 'all'; ui.outfitStatusFilter = 'all'; ui.categoryFilter = 'all'; ui.search = '';
         saveStore(); closeModal(); render();
         showToast(`Created trip "${name}" with custom Outfits tab`);
       });
     }
 
-    function openEditTripModal() {
-      const trip = getActiveTrip();
-      const canDelete = store.trips.length > 1;
+    function openEditTripModal(tripId = null) {
+      const trip = (typeof tripId === 'string' && tripId)
+        ? store.trips.find(t => t.id === tripId)
+        : getActiveTrip();
+      if (!trip) return;
 
       openModal(`
         <div class="modal-head">
@@ -2419,7 +2850,7 @@
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--card-border);">
             <div style="display:flex;gap:6px;">
               <button type="button" id="btnDupTrip" class="btn btn-secondary">Duplicate</button>
-              ${canDelete ? '<button type="button" id="btnDelTrip" class="btn btn-danger">Delete</button>' : ''}
+              <button type="button" id="btnDelTrip" class="btn btn-danger">Delete</button>
             </div>
             <div style="display:flex;gap:8px;">
               <button type="button" id="cancelModalBtn" class="btn btn-secondary">Cancel</button>
@@ -2433,25 +2864,12 @@
       document.getElementById('cancelModalBtn').onclick = closeModal;
 
       document.getElementById('btnDupTrip').onclick = () => {
-        const copy = clone(trip);
-        copy.id = `trip-${Date.now()}`;
-        copy.name = `${trip.name} (Copy)`;
-        store.trips.push(copy);
-        store.activeTripId = copy.id;
-        saveStore(); closeModal(); render();
-        showToast(`Duplicated "${trip.name}"`);
+        duplicateTripById(trip.id, ui.view === 'trip');
       };
 
       const delBtn = document.getElementById('btnDelTrip');
       if (delBtn) {
-        delBtn.onclick = () => {
-          const prev = clone(store);
-          const removedName = trip.name;
-          store.trips = store.trips.filter(t => t.id !== trip.id);
-          store.activeTripId = store.trips[0].id;
-          saveStore(); closeModal(); render();
-          showToast(`Deleted "${removedName}"`, () => { store = prev; saveStore(); render(); });
-        };
+        delBtn.onclick = () => deleteTripById(trip.id);
       }
 
       document.getElementById('editTripForm').addEventListener('submit', (e) => {
@@ -2548,6 +2966,7 @@
 
     function openResetTripModal() {
       const trip = getActiveTrip();
+      if (!trip) return;
       openModal(`
         <div class="modal-head">
           <h3>Reset "${escapeHtml(trip.name)}"</h3>
@@ -2617,28 +3036,30 @@
     }
 
     function openExportModal() {
-      const trip = getActiveTrip();
-      const allItems = getTripChecklistItems(trip);
-      const customOutfits = getUniqueOutfitEntries(trip).filter(u => !u.linked);
+      const trip = ui.view === 'trip' ? getActiveTrip() : null;
+      const allItems = trip ? getTripChecklistItems(trip) : [];
+      const customOutfits = trip ? getUniqueOutfitEntries(trip).filter(u => !u.linked) : [];
+      const tripCount = store.trips.length;
 
       openModal(`
         <div class="modal-head">
           <h3>Backup &amp; Export</h3>
           <button type="button" id="closeModalBtn" class="muted" style="cursor:pointer;font-size:20px;line-height:1;">&times;</button>
         </div>
-        <p class="text-xs muted" style="margin:0;">Export the active trip (including Outfits) to CSV for Google Sheets, or save/restore a full multi-trip backup.</p>
+        <p class="text-xs muted" style="margin:0;">${trip ? 'Export the active trip (including Outfits) to CSV for Google Sheets, or save/restore a full multi-trip backup.' : 'Save or restore a full backup of your trips and Base List template.'}</p>
         <div style="display:flex;flex-direction:column;gap:8px;">
+          ${trip ? `
           <button type="button" id="dlCsvBtn" class="export-card">
             <div>
               <div class="text-xs" style="font-weight:600;">Export "${escapeHtml(trip.name)}" CSV</div>
               <div class="text-xs muted">Base List, Trip Specific &amp; Custom Outfits (${allItems.length + customOutfits.length} rows)</div>
             </div>
             <span class="link-btn">.csv</span>
-          </button>
+          </button>` : ''}
           <button type="button" id="dlJsonBtn" class="export-card">
             <div>
               <div class="text-xs" style="font-weight:600;">Download Full Multi-Trip Backup</div>
-              <div class="text-xs muted">All ${store.trips.length} trip${store.trips.length > 1 ? 's' : ''} &amp; Base List template</div>
+              <div class="text-xs muted">${tripCount === 0 ? 'Base List template (0 trips)' : `All ${tripCount} trip${tripCount === 1 ? '' : 's'} & Base List template`}</div>
             </div>
             <span class="link-btn">.json</span>
           </button>
@@ -2658,15 +3079,18 @@
       document.getElementById('closeModalBtn').onclick = closeModal;
       document.getElementById('cancelModalBtn').onclick = closeModal;
 
-      document.getElementById('dlCsvBtn').onclick = () => {
-        const csvEscape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-        const rows = [['Trip', 'List', 'Category', 'Item', 'Charger', 'Packed']];
-        allItems.forEach(i => rows.push([trip.name, i.list === 'base' ? 'Base List' : 'Trip Specific', i.category, i.name, i.charger || '', i.status]));
-        customOutfits.forEach(o => rows.push([trip.name, 'Outfits', 'Custom Outfit Piece', o.name, '', o.status]));
-        const safeName = trip.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'packing-list';
-        triggerDownload(`${safeName}.csv`, rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8;');
-        closeModal(); showToast(`Downloaded ${safeName}.csv`);
-      };
+      const dlCsvBtn = document.getElementById('dlCsvBtn');
+      if (dlCsvBtn && trip) {
+        dlCsvBtn.onclick = () => {
+          const csvEscape = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+          const rows = [['Trip', 'List', 'Category', 'Item', 'Charger', 'Packed']];
+          allItems.forEach(i => rows.push([trip.name, i.list === 'base' ? 'Base List' : 'Trip Specific', i.category, i.name, i.charger || '', i.status]));
+          customOutfits.forEach(o => rows.push([trip.name, 'Outfits', 'Custom Outfit Piece', o.name, '', o.status]));
+          const safeName = trip.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'packing-list';
+          triggerDownload(`${safeName}.csv`, rows.map(r => r.map(csvEscape).join(',')).join('\n'), 'text/csv;charset=utf-8;');
+          closeModal(); showToast(`Downloaded ${safeName}.csv`);
+        };
+      }
 
       document.getElementById('dlJsonBtn').onclick = () => {
         triggerDownload('packing-tracker-backup.json', JSON.stringify(store, null, 2), 'application/json');
@@ -2697,8 +3121,9 @@
           }
           const prev = clone(store);
           store = parsed;
+          if (!store.trips.length) ui.view = 'home';
           saveStore(); closeModal(); render();
-          showToast(`Imported ${store.trips.length} trip${store.trips.length > 1 ? 's' : ''}`, () => { store = prev; saveStore(); render(); });
+          showToast(`Imported ${store.trips.length} trip${store.trips.length === 1 ? '' : 's'}`, () => { store = prev; saveStore(); render(); });
         } catch (err) {
           showToast('Could not parse JSON file');
         }
@@ -2711,7 +3136,8 @@
     document.querySelectorAll('.main-tab').forEach(btn => {
       btn.addEventListener('click', () => { ui.activeTab = btn.dataset.tab; render(); });
     });
-    document.getElementById('btnEditTrip').addEventListener('click', openEditTripModal);
+    document.getElementById('btnNewTripHeader').addEventListener('click', openCreateTripModal);
+    document.getElementById('btnEditTrip').addEventListener('click', () => openEditTripModal());
     document.getElementById('btnAddItemGlobal').addEventListener('click', openAddItemModal);
     document.getElementById('btnResetTrip').addEventListener('click', openResetTripModal);
     document.getElementById('btnExport').addEventListener('click', openExportModal);
